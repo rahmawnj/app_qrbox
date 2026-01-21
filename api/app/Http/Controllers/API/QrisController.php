@@ -154,7 +154,7 @@ class QrisController extends Controller
         ]);
 
         $amountFormatted = 'Rp ' . number_format($originalPrice, 0, ',', '.');
-        $filePath = $this->generateQRCode($qrString, $orderId, $outlet->name, $amountFormatted);
+        $filePath = $this->generateQRCode($midtransResult['actions'][0]['url'], $orderId, $outlet->name, $amountFormatted);
 
         $qrisDetail->update([
             'qr_code_image' => basename($filePath)
@@ -188,76 +188,66 @@ class QrisController extends Controller
     }
     }
 
-    function generateQRCode($data, $orderId, $textAbove = '0', $textBelow = 'Merchant Name')
-    {
-        $options = new QROptions([
-            'version'          => QRCode::VERSION_AUTO,
-            'outputType'       => QRCode::OUTPUT_IMAGE_JPG,
-            'eccLevel'         => QRCode::ECC_L,
-            'scale'            => 4,
-            'imageBase64'      => false,
-            'bgColor'          => [255, 255, 255, 127],
-            'imageTransparent' => true,
-        ]);
+     function generateQRCode($qrUrl, $orderId, $textAbove = 'Merchant Name', $textBelow = 'Rp 0')
+{
+    $backgroundImageUrl = asset('assets/img/qristempl.jpg');
+    $bgFilePath = public_path(parse_url($backgroundImageUrl, PHP_URL_PATH));
+    $bgGdImage = imagecreatefromjpeg($bgFilePath);
 
-        // Dapatkan URL background dan konversikan menjadi path file lokal
-        $backgroundImageUrl = asset('assets/img/qristempl.jpg');
-        $bgFilePath = public_path(parse_url($backgroundImageUrl, PHP_URL_PATH));
-        $bgGdImage = imagecreatefromjpeg($bgFilePath);
+    // Ambil gambar QR dari URL
+    $qrImageContent = file_get_contents($qrUrl);
+    $qrGdImageOriginal = imagecreatefromstring($qrImageContent);
 
-        // Buat QR Code dan render ke dalam image binary
-        $qrCode = new QRCode($options);
-        $qrImage = $qrCode->render($data);
-        $qrGdImage = imagecreatefromstring($qrImage);
+    // Ukuran asli QR
+    $qrOriginalWidth  = imagesx($qrGdImageOriginal);
+    $qrOriginalHeight = imagesy($qrGdImageOriginal);
 
-        // Mendapatkan dimensi gambar QR dan background
-        $qrWidth  = imagesx($qrGdImage);
-        $qrHeight = imagesy($qrGdImage);
-        $bgWidth  = imagesx($bgGdImage);
-        $bgHeight = imagesy($bgGdImage);
+    // Perkecil lebih jauh
+    $scale = 0.35;
+    $qrWidth  = (int)($qrOriginalWidth * $scale);
+    $qrHeight = (int)($qrOriginalHeight * $scale);
 
-        // Menghitung posisi agar QR Code berada di tengah background
-        $dstX = ($bgWidth - $qrWidth) / 2;
-        $dstY = ($bgHeight - $qrHeight) / 2;
+    // Resize QR ke ukuran baru
+    $qrGdImage = imagecreatetruecolor($qrWidth, $qrHeight);
+    imagealphablending($qrGdImage, false);
+    imagesavealpha($qrGdImage, true);
+    imagecopyresampled($qrGdImage, $qrGdImageOriginal, 0, 0, 0, 0, $qrWidth, $qrHeight, $qrOriginalWidth, $qrOriginalHeight);
 
-        // Menyalin QR Code ke background, sedikit diturunkan secara vertikal (offset +20)
-        imagecopy($bgGdImage, $qrGdImage, (int)$dstX, (int)($dstY + 20), 0, 0, $qrWidth, $qrHeight);
+    // Tempel ke background
+    $bgWidth  = imagesx($bgGdImage);
+    $bgHeight = imagesy($bgGdImage);
+    $dstX = ($bgWidth - $qrWidth) / 2;
+    $dstY = ($bgHeight - $qrHeight) / 2;
 
-        // Mengatur ukuran font untuk teks (nilai 1 sampai 5)
-        $fontSize = 5;
+    imagecopy($bgGdImage, $qrGdImage, (int)$dstX, (int)($dstY + 20), 0, 0, $qrWidth, $qrHeight);
 
-        // Menghitung posisi untuk teks di atas (textAbove)
-        $textAboveWidth = imagefontwidth($fontSize) * strlen($textAbove);
-        $textAboveX = ($bgWidth - $textAboveWidth) / 2;
-        // Posisi teks atas: sesuaikan offset Y jika perlu
-        $textAboveY = $dstY - 30;
+    // Teks
+    $fontSize = 5;
+    $textAboveWidth = imagefontwidth($fontSize) * strlen($textAbove);
+    $textAboveX = ($bgWidth - $textAboveWidth) / 2;
 
-        // Menghitung posisi untuk teks di bawah (textBelow)
-        $textBelowWidth = imagefontwidth($fontSize) * strlen($textBelow);
-        $textBelowX = ($bgWidth - $textBelowWidth) / 2;
-        // Ubah offset Y untuk teks bawah agar tidak tertutup, misal tambahkan nilai offset yang lebih besar
-        $textBelowY = $dstY + $qrHeight + 20;
+    $textBelowWidth = imagefontwidth($fontSize) * strlen($textBelow);
+    $textBelowX = ($bgWidth - $textBelowWidth) / 2;
+    $textBelowY = $dstY + $qrHeight + 30;
 
-        // Pilih warna teks, misalnya hitam
-        $textColor = imagecolorallocate($bgGdImage, 0, 0, 0);
+    $textColor = imagecolorallocate($bgGdImage, 0, 0, 0);
 
-        // Menuliskan teks pada gambar
-        imagestring($bgGdImage, $fontSize, (int)$textAboveX, (int)$textAboveY + 45, $textAbove, $textColor);
-        imagestring($bgGdImage, $fontSize, (int)$textBelowX, (int)$textBelowY, $textBelow, $textColor);
+    imagestring($bgGdImage, $fontSize + 4, (int)$textAboveX, (int)$dstY + 10, $textAbove, $textColor);
+    imagestring($bgGdImage, $fontSize, (int)$textBelowX, (int)$textBelowY, $textBelow, $textColor);
 
-        // Simpan gambar akhir ke folder storage
-        $folder = storage_path('app/public/qrcodes/');
-        if (!file_exists($folder)) {
-            mkdir($folder, 0777, true);
-        }
-        $filePath = $folder . $orderId . '.jpg';
-        imagejpeg($bgGdImage, $filePath);
-
-        imagedestroy($qrGdImage);
-        imagedestroy($bgGdImage);
-
-        return $filePath;
+    $folder = storage_path('app/public/qrcodes/');
+    if (!file_exists($folder)) {
+        mkdir($folder, 0777, true);
     }
+    $filePath = $folder . $orderId . '.jpg';
+    imagejpeg($bgGdImage, $filePath);
+
+    imagedestroy($qrGdImageOriginal);
+    imagedestroy($qrGdImage);
+    imagedestroy($bgGdImage);
+
+    return $filePath;
+}
 
    public function checkPaymentStatus(Request $request)
 {
