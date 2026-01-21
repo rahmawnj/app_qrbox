@@ -313,7 +313,6 @@ class QrisController extends Controller
                 return response()->json([
                     'status'  => 'success',
                     'message' => [
-                        // 'type' => $deviceTransaction->service_type,
                         'order_id'        => $orderId,
                         'payment_status'  => $transactionStatus,
                         'qr_code_deleted' => false,
