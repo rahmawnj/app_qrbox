@@ -4,12 +4,14 @@ namespace App\Http\Controllers\Admin;
 
 use App\Models\Owner;
 use App\Models\Outlet;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use App\Services\OutletService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class OutletController extends Controller
 {
@@ -46,7 +48,6 @@ class OutletController extends Controller
             'lat'                     => 'required|numeric',
             'lon'                     => 'required|numeric',
             'image'                   => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            // Validasi biaya layanan (opsional jika ingin diinput saat create)
             'service_fee_percentage'  => 'nullable|numeric|between:0,0.999',
             'min_monthly_service_fee' => 'nullable|numeric',
         ]);
@@ -59,7 +60,7 @@ class OutletController extends Controller
                     $imagePath = $request->file('image')->store('outlets', 'public');
                 }
 
-                Outlet::create([
+                $outlet = Outlet::create([
                     'owner_id'                => $request->owner_id,
                     'code'                    => $this->generateUniqueCode(),
                     'outlet_name'             => $request->outlet_name,
@@ -76,6 +77,9 @@ class OutletController extends Controller
                     'min_monthly_service_fee' => $request->min_monthly_service_fee ?? 100000.00,
                     'device_deposit_price'    => $request->device_deposit_price ?? 500000.00,
                 ]);
+                outletService()->syncToken($outlet);
+
+
             });
 
             return redirect()->route('admin.outlets.index')->with('success', 'Outlet berhasil ditambahkan');
@@ -167,4 +171,61 @@ class OutletController extends Controller
 
         return $code;
     }
+
+public function regenerateToken(Request $request, $id)
+{
+    // 1. Validasi Input
+    $request->validate([
+        'password' => 'required'
+    ]);
+
+    // 2. Identifikasi Guard yang sedang aktif (admin_config atau web)
+    $guard = Auth::guard('admin_config')->check() ? 'admin_config' : 'web';
+    $user = Auth::guard($guard)->user();
+
+    if (!$user) {
+        return redirect()->back()->with('error', 'Sesi Anda telah berakhir. Silakan login kembali.');
+    }
+
+    // 3. Validasi Password ke Guard yang tepat
+    // Ini akan mengecek password terhadap hardcoded config atau database users
+    $isPasswordCorrect = Auth::guard($guard)->validate([
+        'email'    => $user->email,
+        'password' => $request->password,
+    ]);
+
+    if (!$isPasswordCorrect) {
+        return redirect()->back()
+            ->withInput() // Agar input selain password tidak hilang
+            ->with('error_password', 'Konfirmasi password gagal. Password yang Anda masukkan salah.');
+    }
+
+    // 4. Proses Update Token menggunakan Transaction
+    DB::beginTransaction();
+    try {
+        $outlet = Outlet::findOrFail($id);
+
+        // Memanggil service helper yang sudah kita buat sebelumnya
+        // Logic generate token ada di dalam Service agar konsisten
+        outletService()->syncToken($outlet);
+
+        DB::commit();
+
+        return redirect()->back()->with('success', 'Device Token untuk outlet ' . $outlet->outlet_name . ' berhasil diperbarui.');
+
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        DB::rollBack();
+        return redirect()->back()->with('error', 'Outlet tidak ditemukan.');
+    } catch (\Exception $e) {
+        DB::rollBack();
+
+        // Log error untuk kebutuhan debugging dev
+        Log::error('Regenerate Token Error: ' . $e->getMessage(), [
+            'outlet_id' => $id,
+            'user' => $user->email
+        ]);
+
+        return redirect()->back()->with('error', 'Terjadi kesalahan sistem saat memperbarui token.');
+    }
+}
 }

@@ -42,23 +42,23 @@ class DatabaseSeeder extends Seeder
 
         $outletIds = [1, 2, 3, 4];
         $data = [];
-        for ($i=0; $i<1000; $i++) {
-            $outletId = $outletIds[array_rand($outletIds)];
-            $category = array_rand($serviceTypes);
-            $serviceType = $serviceTypes[$category][array_rand($serviceTypes[$category])];
+        // for ($i=0; $i<1000; $i++) {
+        //     $outletId = $outletIds[array_rand($outletIds)];
+        //     $category = array_rand($serviceTypes);
+        //     $serviceType = $serviceTypes[$category][array_rand($serviceTypes[$category])];
 
-            $data[] = [
-                'transaction_id' => null,
-                'outlet_id' => $outletId,
-                'device_code' => strtoupper(Str::random(6)),
-                'service_type' => $serviceType,
-                'activated_at' => now()->subDays(rand(0,30)),
-                'status' => rand(0,1),
-                'bypass_activation' => rand(0,1) ? now()->subDays(rand(0,30)) : null,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ];
-        }
+        //     $data[] = [
+        //         'transaction_id' => null,
+        //         'outlet_id' => $outletId,
+        //         'device_code' => strtoupper(Str::random(6)),
+        //         'service_type' => $serviceType,
+        //         'activated_at' => now()->subDays(rand(0,30)),
+        //         'status' => rand(0,1),
+        //         'bypass_activation' => rand(0,1) ? now()->subDays(rand(0,30)) : null,
+        //         'created_at' => now(),
+        //         'updated_at' => now(),
+        //     ];
+        // }
 
         // DB::table('device_transactions')->insert($data);
 

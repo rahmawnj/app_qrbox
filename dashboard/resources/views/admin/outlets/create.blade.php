@@ -17,6 +17,16 @@
                     <h4 class="panel-title">Informasi Dasar</h4>
                 </div>
                 <div class="panel-body">
+                    @if ($errors->any())
+                        <div class="alert alert-danger">
+                            <strong>Waduh! Ada beberapa masalah:</strong>
+                            <ul>
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Nama Outlet <span class="text-danger">*</span></label>

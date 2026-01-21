@@ -114,6 +114,8 @@
 
             <div class="row">
                 @forelse ($devices as $device)
+
+
                     <div class="col-md-4 mb-4" id="device-{{ $device->id }}">
                         <div class="card h-100">
                             <div class="card-header d-flex justify-content-between align-items-center bg-light">
@@ -226,6 +228,18 @@
                                         @endif
                                     </div>
                                 </div>
+                                <div class="mb-3 p-2 bg-white border rounded">
+                <small class="text-muted d-block mb-1"><i class="fas fa-key me-1"></i> Master Device Token</small>
+                <div class="input-group input-group-sm">
+                    <input type="text" class="form-control fw-bold text-primary bg-light border-0"
+                           id="token-{{ $device->id }}"
+                           value="{{ $device->outlet->device_token ?? 'Belum Set' }}" readonly>
+                    <button class="btn btn-outline-secondary border-0" type="button"
+                            onclick="copyToken('token-{{ $device->id }}')">
+                        <i class="fa fa-copy"></i>
+                    </button>
+                </div>
+            </div>
                             </div>
 
                         </div>
@@ -368,7 +382,35 @@
     <script src="{{ asset('assets/plugins/gritter/js/jquery.gritter.js') }}"></script>
     <script src="{{ asset('assets/plugins/select-picker/dist/picker.min.js') }}"></script>
     <script src="{{ asset('assets/plugins/sweetalert/dist/sweetalert.min.js') }}"></script>
+<script>
+    // Fungsi Salin Token
+    function copyToken(id) {
+        const copyText = document.getElementById(id);
+        if(copyText.value === 'Belum Set') return;
 
+        copyText.select();
+        copyText.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(copyText.value).then(() => {
+            $.gritter.add({
+                title: 'Berhasil!',
+                text: 'Token berhasil disalin ke clipboard.',
+                class_name: 'gritter-light',
+                time: 2000
+            });
+        });
+    }
+
+    // Handle Error Password dari Redirect Back
+    $(document).ready(function() {
+        @if(session('error_password'))
+            const targetId = "{{ session('target_id') }}";
+            if(targetId) {
+                const errorModal = new bootstrap.Modal(document.getElementById('modalConfirmPassword-' + targetId));
+                errorModal.show();
+            }
+        @endif
+    });
+</script>
     <script>
         function onDeviceChange(el) {
             const selectedDeviceId = el.value;

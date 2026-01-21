@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('code')->unique();
             $table->string('address')->nullable();
             $table->boolean('status')->default(false);
-
+            $table->string('device_token')->nullable();
             $table->decimal('service_fee_percentage', 4, 3)->default(0.100);
             $table->decimal('min_monthly_service_fee', 12, 2)->default(100000.00);
             $table->decimal('device_deposit_price', 15, 2)->default(500000.00)->comment('Harga jaminan (deposit) per unit perangkat yang dibebankan kepada outlet saat registrasi device baru.');

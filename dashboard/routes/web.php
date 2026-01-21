@@ -111,7 +111,8 @@ Route::get('dashboard', function () {
 
 Route::get('export/admin-transactions', [ExportController::class, 'adminTransactions'])->name('export.admin-transactions');
 Route::get('export/partner-transactions', [ExportController::class, 'partnerTransactions'])->name('export.partner-transactions');
-
+Route::post('outlets/{id}/regenerate-token', [OutletController::class, 'regenerateToken'])
+    ->name('outlets.regenerate-token');
 
 
 // Route::middleware(['auth'])->group(function () {

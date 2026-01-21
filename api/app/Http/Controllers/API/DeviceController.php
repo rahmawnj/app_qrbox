@@ -191,11 +191,18 @@ public function toggleStatus(Request $request, Device $device)
     }
 
 
-    public function getDeviceMenu($device_code)
+    public function getDeviceMenu(Request $request, $device_code)
     {
         try {
-            // Cari device berdasarkan device_code
+$apiToken = $request->query('api_token');
             $device = Device::where('code', $device_code)->first();
+
+            if (!$apiToken || $device->outlet->device_token !== $apiToken) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized: Token tidak valid'
+            ], 401);
+        }
 
             if (!$device) {
                 return response()->json([

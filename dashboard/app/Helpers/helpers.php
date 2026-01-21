@@ -3,6 +3,7 @@
 use App\Helpers\DataFetcher;
 use App\Helpers\ImageHelper;
 use Illuminate\Support\Facades\Auth;
+use App\Providers\OutletService;
 
 // --- Helper untuk mendapatkan Root Entity ---
 if (! function_exists('getUserDataRootEntity')) {
@@ -154,4 +155,11 @@ if (! function_exists('generateOrderId')) {
             return ImageHelper::deleteImage($path);
         }
     }
+
+ if (! function_exists('outletService')) {
+    function outletService()
+    {
+        return app(OutletService::class);
+    }
+}
 }

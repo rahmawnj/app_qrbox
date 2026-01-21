@@ -46,7 +46,7 @@ class OwnerOutletSeeder extends Seeder
                 'bank_name' => 'BCA',
                 'bank_account_number' => '1234567890',
                 'bank_account_holder_name' => 'RAHMA TAZAKA',
-                'balance' => rand(50, 300) * 10000,
+                'balance' => 0,
             ]);
 
             $outletDefault = Outlet::create([
@@ -64,44 +64,44 @@ class OwnerOutletSeeder extends Seeder
             $this->createSpecificDevice($outletDefault->id, $laundryService, 'DEV-WHNTZR');
 
 
-            for ($i = 1; $i <= 3; $i++) {
+            // for ($i = 1; $i <= 3; $i++) {
 
-               $randomEmail = $faker->unique()->safeEmail;
-                $user = User::create([
-                    'name'     => $faker->name,
-                    'email'    => $randomEmail,
-                    'password' => Hash::make($randomEmail),
-                ]);
+            //    $randomEmail = $faker->unique()->safeEmail;
+            //     $user = User::create([
+            //         'name'     => $faker->name,
+            //         'email'    => $randomEmail,
+            //         'password' => Hash::make($randomEmail),
+            //     ]);
 
-                $owner = Owner::create([
-                    'user_id' => $user->id,
-                    'code' => 'BR' . str_pad($i, 3, '0', STR_PAD_LEFT),
-                    'brand_name' => ucfirst($faker->word) . ' ' . $faker->company,
-                    'status' => true,
-                    'contract_number' => 'CONT/' . date('Y') . '/' . strtoupper(Str::random(5)),
-                    'contract_start' => now()->toDateString(),
-                    'contract_end' => now()->addYear()->toDateString(),
-                    'bank_name' => $fakerEn->randomElement(['BCA', 'Mandiri', 'BRI']),
-                    'bank_account_number' => $faker->bankAccountNumber,
-                    'bank_account_holder_name' => strtoupper($user->name),
-                    'balance' => rand(30, 500) * 10000,
-                    'deposit_amount' => rand(10, 200) * 10000,
-                ]);
+            //     $owner = Owner::create([
+            //         'user_id' => $user->id,
+            //         'code' => 'BR' . str_pad($i, 3, '0', STR_PAD_LEFT),
+            //         'brand_name' => ucfirst($faker->word) . ' ' . $faker->company,
+            //         'status' => true,
+            //         'contract_number' => 'CONT/' . date('Y') . '/' . strtoupper(Str::random(5)),
+            //         'contract_start' => now()->toDateString(),
+            //         'contract_end' => now()->addYear()->toDateString(),
+            //         'bank_name' => $fakerEn->randomElement(['BCA', 'Mandiri', 'BRI']),
+            //         'bank_account_number' => $faker->bankAccountNumber,
+            //         'bank_account_holder_name' => strtoupper($user->name),
+            //         'balance' => rand(30, 500) * 10000,
+            //         'deposit_amount' => rand(10, 200) * 10000,
+            //     ]);
 
-                $outlet = Outlet::create([
-                    'owner_id' => $owner->id,
-                    'outlet_name' => $owner->brand_name . ' - Outlet ' . $i,
-                    'code' => 'OUT-' . strtoupper(Str::random(6)),
-                    'address' => $faker->address,
-                    'city_name' => 'Jakarta',
-                    'status' => true,
-                    'timezone' => 'Asia/Jakarta',
-                    'latlong' => json_encode(['lat' => -6.2088, 'lon' => 106.8456]),
-                ]);
+            //     $outlet = Outlet::create([
+            //         'owner_id' => $owner->id,
+            //         'outlet_name' => $owner->brand_name . ' - Outlet ' . $i,
+            //         'code' => 'OUT-' . strtoupper(Str::random(6)),
+            //         'address' => $faker->address,
+            //         'city_name' => 'Jakarta',
+            //         'status' => true,
+            //         'timezone' => 'Asia/Jakarta',
+            //         'latlong' => json_encode(['lat' => -6.2088, 'lon' => 106.8456]),
+            //     ]);
 
-                // Sisa device diletakkan di owner lain (10 device per outlet)
-                $this->generateDevices($outlet->id, $serviceTypes);
-            }
+            //     // Sisa device diletakkan di owner lain (10 device per outlet)
+            //     $this->generateDevices($outlet->id, $serviceTypes);
+            // }
         });
     }
 
