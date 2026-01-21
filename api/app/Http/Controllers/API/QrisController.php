@@ -97,8 +97,8 @@ class QrisController extends Controller
             'service_type'   => $type,
             'device_status'  => 1,
         ]);
-        $serverKey = 'Mid-server-IEGkTq3-hHCfJ0-NtmAobs5B';
-        $midtransUrl = 'https://api.sandbox.midtrans.com/v2/charge';
+        $serverKey = 'Mid-server-b-nJgnhiykD3mqoxbwye-A-u';
+        $midtransUrl = 'https://api.midtrans.com/v2/charge';
 
         $requestBody = [
             "payment_type" => "qris",
@@ -176,8 +176,6 @@ class QrisController extends Controller
                 "final_amount"   => $finalAmountToPay,
                 "fee_deducted"   => $feeAmount
             ],
-$midtransResult
-
         ], 200);
 
     } catch (\Exception $e) {
