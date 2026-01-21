@@ -25,16 +25,9 @@ class QrisController extends Controller
     {
         $type = $request->input('type');
         $deviceCode = $request->input('device_code');
-        $apiToken = $request->input('api_token');
 
+        // 1. Cari Device
         $device = Device::where('code', $deviceCode)->first();
-        if ($device->outlet->device_token !== $apiToken) {
-            return response()->json([
-                "status" => "error",
-                "message" => "Token tidak valid atau tidak diizinkan"
-            ], 401);
-        }
-
         if (!$device) {
             return response()->json(["status" => "error", "message" => "Device tidak ditemukan"], 404);
         }
@@ -76,6 +69,7 @@ class QrisController extends Controller
     try {
         $orderId = 'TRX-' . $outlet->code . '-' . time() . '-' . strtoupper(uniqid());
 
+        // 1. Simpan ke Tabel Transactions (Tetap sama)
         $transaction = Transaction::create([
             'order_id'               => $orderId,
             'owner_id'               => $owner->id,
@@ -97,8 +91,8 @@ class QrisController extends Controller
             'service_type'   => $type,
             'device_status'  => 1,
         ]);
-        $serverKey = env('MIDTRANS_SERVER_KEY');
-        $midtransUrl = 'https://api.midtrans.com/v2/charge';
+        $serverKey = 'Mid-server-IEGkTq3-hHCfJ0-NtmAobs5B';
+        $midtransUrl = 'https://api.sandbox.midtrans.com/v2/charge';
 
         $requestBody = [
             "payment_type" => "qris",
@@ -120,6 +114,7 @@ class QrisController extends Controller
                 "outlet_name"      => $device->outlet,
                 "email"      => $owner->user->email,
             ],
+            // Opsional: Jika ingin spesifik acquirer tertentu seperti gopay
             "qris" => [
                 "acquirer" => "gopay"
             ]
@@ -153,6 +148,7 @@ class QrisController extends Controller
             'transactionable_type' => Transaction::class,
         ]);
 
+        // 4. Generate File QR Image (Menggunakan QR String dari Midtrans)
         $amountFormatted = 'Rp ' . number_format($originalPrice, 0, ',', '.');
         $filePath = $this->generateQRCode($qrString, $orderId, $outlet->name, $amountFormatted);
 
@@ -175,7 +171,7 @@ class QrisController extends Controller
                 "original_price" => $originalPrice,
                 "final_amount"   => $finalAmountToPay,
                 "fee_deducted"   => $feeAmount
-            ],
+            ]
         ], 200);
 
     } catch (\Exception $e) {
@@ -261,7 +257,6 @@ class QrisController extends Controller
 
    public function checkPaymentStatus(Request $request)
 {
-    $apiToken = $request->query('api_token');
     $orderId = $request->query('order_id');
 
     if (!$orderId) {
@@ -271,7 +266,6 @@ class QrisController extends Controller
         ], 400);
     }
 
-
     try {
         $transaction = Transaction::where('order_id', $orderId)
             ->with(['deviceTransactions'])
@@ -279,14 +273,6 @@ class QrisController extends Controller
             ->first();
             $deviceTransaction = $transaction->deviceTransactions->first();
 
-            $device = Device::where('code', $deviceTransaction->device_code)->first();
-
-            if ($device->outlet->device_token !== $apiToken) {
-            return response()->json([
-                "status" => "error",
-                "message" => "Token tidak valid atau tidak diizinkan"
-            ], 401);
-        }
         if ($transaction) {
             $transactionStatus = $transaction->status;
             $qrCodeImage = $transaction->qr_code_image;
@@ -356,7 +342,6 @@ class QrisController extends Controller
 {
     $service_type = $request->query('service_type');
     $code_device = $request->query('device_code');
-    $apiToken = $request->query('api_token');
 
     if (!$service_type) {
         return response()->json([
@@ -379,13 +364,6 @@ class QrisController extends Controller
             'message' => 'device code is not registered'
         ], 400);
     }
-     if ($device->outlet->device_token !== $apiToken) {
-            return response()->json([
-                "status" => "error",
-                "message" => "Token tidak valid atau tidak diizinkan"
-            ], 401);
-        }
-
 
     try {
         $transaction = Transaction::where('status', 'success') // Langsung cari transaksi yang status-nya 'success'
