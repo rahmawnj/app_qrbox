@@ -97,7 +97,7 @@ class QrisController extends Controller
             'service_type'   => $type,
             'device_status'  => 1,
         ]);
-        $serverKey = 'Mid-server-b-nJgnhiykD3mqoxbwye-A-u';
+        $serverKey = env('MIDTRANS_SERVER_KEY');
         $midtransUrl = 'https://api.midtrans.com/v2/charge';
 
         $requestBody = [
