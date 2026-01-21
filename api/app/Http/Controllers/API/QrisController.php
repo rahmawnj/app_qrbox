@@ -249,10 +249,10 @@ class QrisController extends Controller
     return $filePath;
 }
 
-   public function checkPaymentStatus(Request $request)
+public function checkPaymentStatus(Request $request)
 {
     $apiToken = $request->query('api_token');
-    $orderId = $request->query('order_id');
+    $orderId  = $request->query('order_id');
 
     if (!$orderId) {
         return response()->json([
@@ -261,66 +261,14 @@ class QrisController extends Controller
         ], 400);
     }
 
-
     try {
         $transaction = Transaction::where('order_id', $orderId)
-            ->with(['deviceTransactions'])
             ->where('created_at', '>=', now()->subHour())
+            ->with('deviceTransactions')
             ->first();
-            $deviceTransaction = $transaction->deviceTransactions->first();
 
-            $device = Device::where('code', $deviceTransaction->device_code)->first();
-
-            if ($device->outlet->device_token !== $apiToken) {
-            return response()->json([
-                "status" => "error",
-                "message" => "Token tidak valid atau tidak diizinkan"
-            ], 401);
-        }
-        if ($transaction) {
-            $transactionStatus = $transaction->status;
-            $qrCodeImage = $transaction->qr_code_image;
-
-            if ($transactionStatus === 'success') {
-                $deviceStatus = null;
-
-                if ($qrCodeImage) {
-                    Log::info("QR Code for order ID {$orderId} would be deleted here.");
-                }
-
-
-                if ($deviceTransaction) {
-                    $deviceStatus = $deviceTransaction->status;
-                    $deviceTransaction->update([
-                        'status' => false,
-                        'bypass_activation'  => now()
-                    ]);
-                    Log::info("DeviceTransaction ID {$deviceTransaction->id} for Transaction ID {$transaction->id} updated to status: false.");
-                }
-
-                return response()->json([
-                    'status'  => 'success',
-                    'message' => [
-                        'type' => $deviceTransaction->service_type,
-                        'order_id'        => $orderId,
-                        'payment_status'  => $transactionStatus,
-                        'device_status'   => $deviceStatus,
-                        'qr_code_deleted' => (bool)$qrCodeImage,
-                        'description'     => 'Pembayaran Berhasil.'
-                    ]
-                ]);
-            } else {
-                return response()->json([
-                    'status'  => 'success',
-                    'message' => [
-                        'order_id'        => $orderId,
-                        'payment_status'  => $transactionStatus,
-                        'qr_code_deleted' => false,
-                        'description'     => 'Pembayaran tidak berhasil.'
-                    ]
-                ]);
-            }
-        } else {
+        // ❌ TRANSACTION TIDAK DITEMUKAN
+        if (!$transaction) {
             return response()->json([
                 'status'  => 'error',
                 'message' => [
@@ -329,17 +277,83 @@ class QrisController extends Controller
                 ]
             ]);
         }
+
+        $transactionStatus = $transaction->status;
+        $qrCodeImage       = $transaction->qr_code_image;
+
+        // ⛔ BELUM DIBAYAR → JANGAN SENTUH DEVICE
+        if ($transactionStatus !== 'success') {
+            return response()->json([
+                'status'  => 'success',
+                'message' => [
+                    'order_id'        => $orderId,
+                    'payment_status'  => $transactionStatus,
+                    'qr_code_deleted' => false,
+                    'description'     => 'Pembayaran tidak berhasil.'
+                ]
+            ]);
+        }
+
+        // ✅ BARU MASUK KE DEVICE TRANSACTION
+        $deviceTransaction = $transaction->deviceTransactions->first();
+
+        if (!$deviceTransaction) {
+            throw new \Exception('Device transaction not found for successful payment.');
+        }
+
+        $device = Device::where('code', $deviceTransaction->device_code)->first();
+
+        if (!$device || !$device->outlet) {
+            throw new \Exception('Device or outlet not found.');
+        }
+
+        // 🔐 VALIDASI TOKEN SETELAH PAYMENT SUCCESS
+        if ($device->outlet->device_token !== $apiToken) {
+            return response()->json([
+                "status"  => "error",
+                "message" => "Token tidak valid atau tidak diizinkan"
+            ], 401);
+        }
+
+        // 🔄 UPDATE DEVICE TRANSACTION
+        $deviceStatus = $deviceTransaction->status;
+
+        $deviceTransaction->update([
+            'status'            => false,
+            'bypass_activation' => now()
+        ]);
+
+        Log::info("DeviceTransaction ID {$deviceTransaction->id} updated after successful payment.");
+
+        if ($qrCodeImage) {
+            Log::info("QR Code for order ID {$orderId} would be deleted here.");
+        }
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => [
+                'type'             => $deviceTransaction->service_type,
+                'order_id'         => $orderId,
+                'payment_status'   => $transactionStatus,
+                'device_status'    => $deviceStatus,
+                'qr_code_deleted'  => (bool) $qrCodeImage,
+                'description'      => 'Pembayaran Berhasil.'
+            ]
+        ]);
+
     } catch (\Exception $e) {
         Log::error('Error checking payment status: ' . $e->getMessage(), [
-            'order_id' => $orderId ?? 'N/A',
+            'order_id'  => $orderId,
             'exception' => $e
         ]);
+
         return response()->json([
             'status'  => 'error',
             'message' => 'Database error: ' . $e->getMessage()
         ], 500);
     }
 }
+
 
    public function checkPaymentStatus2(Request $request)
 {
