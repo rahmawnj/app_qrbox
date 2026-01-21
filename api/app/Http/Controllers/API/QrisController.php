@@ -98,7 +98,7 @@ class QrisController extends Controller
             'device_status'  => 1,
         ]);
         $serverKey = env('MIDTRANS_SERVER_KEY');
-        $midtransUrl = 'https://api.midtrans.com/v2/charge';
+        $midtransUrl = env('MIDTRANS_URL_API');
 
         $requestBody = [
             "payment_type" => "qris",
@@ -154,7 +154,7 @@ class QrisController extends Controller
         ]);
 
         $amountFormatted = 'Rp ' . number_format($originalPrice, 0, ',', '.');
-        $filePath = $this->generateQRCode($midtransResult['actions'][0]['url'], $orderId, $outlet->name, $amountFormatted);
+        $filePath = $this->generateQRCode($midtransResult['actions'][0]['url'], $orderId, $outlet->outlet_name, $amountFormatted);
 
         $qrisDetail->update([
             'qr_code_image' => basename($filePath)
@@ -188,62 +188,71 @@ class QrisController extends Controller
     }
     }
 
-     function generateQRCode($qrUrl, $orderId, $textAbove = 'Merchant Name', $textBelow = 'Rp 0')
+    function generateQRCode($qrUrl, $orderId, $textAbove = 'Merchant Name', $textBelow = 'Rp 0')
 {
+    $targetWidth = 320;
+    $targetHeight = 480;
+
     $backgroundImageUrl = asset('assets/img/qristempl.jpg');
     $bgFilePath = public_path(parse_url($backgroundImageUrl, PHP_URL_PATH));
-    $bgGdImage = imagecreatefromjpeg($bgFilePath);
+    $bgOriginal = imagecreatefromjpeg($bgFilePath);
 
-    // Ambil gambar QR dari URL
+    // 1. Buat kanvas kosong 320x480 warna putih
+    $bgGdImage = imagecreatetruecolor($targetWidth, $targetHeight);
+    $white = imagecolorallocate($bgGdImage, 255, 255, 255);
+    imagefill($bgGdImage, 0, 0, $white);
+
+    // 2. Tempel LOGO/HEADER (Turunkan posisi Y ke 40 agar tidak mepet atas)
+    $headerY = 20;
+    $originalWidth = imagesx($bgOriginal);
+    $originalHeight = imagesy($bgOriginal);
+
+    // Kita tempel background asli ke kanvas baru dengan posisi Y yang sudah diturunkan
+    imagecopyresampled($bgGdImage, $bgOriginal, 0, $headerY, 0, 0, $targetWidth, (int)($originalHeight * ($targetWidth / $originalWidth)), $originalWidth, $originalHeight);
+
+    // 3. Olah QR Code (Dibuat ukuran 280 agar penuh)
     $qrImageContent = file_get_contents($qrUrl);
     $qrGdImageOriginal = imagecreatefromstring($qrImageContent);
+    $qrSize = 300;
+    $qrGdImage = imagecreatetruecolor($qrSize, $qrSize);
+    imagecopyresampled($qrGdImage, $qrGdImageOriginal, 0, 0, 0, 0, $qrSize, $qrSize, imagesx($qrGdImageOriginal), imagesy($qrGdImageOriginal));
 
-    // Ukuran asli QR
-    $qrOriginalWidth  = imagesx($qrGdImageOriginal);
-    $qrOriginalHeight = imagesy($qrGdImageOriginal);
+    // 4. Koordinat Layout (Sekarang semua relatif terhadap header yang sudah turun)
+    $merchantY = $headerY + 80; // Nama toko di bawah logo QRIS
+    $qrY = $merchantY + 30;     // QR di bawah nama toko
+    $priceY = 430;              // Harga di paling bawah
 
-    // Perkecil lebih jauh
-    $scale = 0.35;
-    $qrWidth  = (int)($qrOriginalWidth * $scale);
-    $qrHeight = (int)($qrOriginalHeight * $scale);
+    // Tempel QR ke kanvas
+    $qrX = ($targetWidth - $qrSize) / 2;
+    imagecopy($bgGdImage, $qrGdImage, (int)$qrX, (int)$qrY, 0, 0, $qrSize, $qrSize);
 
-    // Resize QR ke ukuran baru
-    $qrGdImage = imagecreatetruecolor($qrWidth, $qrHeight);
-    imagealphablending($qrGdImage, false);
-    imagesavealpha($qrGdImage, true);
-    imagecopyresampled($qrGdImage, $qrGdImageOriginal, 0, 0, 0, 0, $qrWidth, $qrHeight, $qrOriginalWidth, $qrOriginalHeight);
-
-    // Tempel ke background
-    $bgWidth  = imagesx($bgGdImage);
-    $bgHeight = imagesy($bgGdImage);
-    $dstX = ($bgWidth - $qrWidth) / 2;
-    $dstY = ($bgHeight - $qrHeight) / 2;
-
-    imagecopy($bgGdImage, $qrGdImage, (int)$dstX, (int)($dstY + 20), 0, 0, $qrWidth, $qrHeight);
-
-    // Teks
-    $fontSize = 5;
-    $textAboveWidth = imagefontwidth($fontSize) * strlen($textAbove);
-    $textAboveX = ($bgWidth - $textAboveWidth) / 2;
-
-    $textBelowWidth = imagefontwidth($fontSize) * strlen($textBelow);
-    $textBelowX = ($bgWidth - $textBelowWidth) / 2;
-    $textBelowY = $dstY + $qrHeight + 30;
-
+    // 5. Render Teks
     $textColor = imagecolorallocate($bgGdImage, 0, 0, 0);
+    $fontSize = 5;
 
-    imagestring($bgGdImage, $fontSize + 4, (int)$textAboveX, (int)$dstY + 10, $textAbove, $textColor);
-    imagestring($bgGdImage, $fontSize, (int)$textBelowX, (int)$textBelowY, $textBelow, $textColor);
+    // Nama Merchant
+    $textAboveWidth = imagefontwidth($fontSize) * strlen($textAbove);
+    $textAboveX = ($targetWidth - $textAboveWidth) / 2;
+    imagestring($bgGdImage, $fontSize, (int)$textAboveX, (int)$merchantY, $textAbove, $textColor);
 
+    // Harga (Dibuat lebih besar/tebal dengan tumpukan 3 layer)
+    $textBelowWidth = imagefontwidth($fontSize) * strlen($textBelow);
+    $textBelowX = ($targetWidth - $textBelowWidth) / 2;
+
+    // Gambar teks 3x (geser 1px) supaya terlihat lebih GEDE dan TEBAL
+    imagestring($bgGdImage, $fontSize, (int)$textBelowX, (int)$priceY, $textBelow, $textColor);
+    imagestring($bgGdImage, $fontSize, (int)$textBelowX + 1, (int)$priceY, $textBelow, $textColor);
+    imagestring($bgGdImage, $fontSize, (int)$textBelowX, (int)$priceY + 1, $textBelow, $textColor);
+
+    // 6. Simpan
     $folder = storage_path('app/public/qrcodes/');
-    if (!file_exists($folder)) {
-        mkdir($folder, 0777, true);
-    }
+    if (!file_exists($folder)) { mkdir($folder, 0777, true); }
     $filePath = $folder . $orderId . '.jpg';
-    imagejpeg($bgGdImage, $filePath);
+    imagejpeg($bgGdImage, $filePath, 100);
 
     imagedestroy($qrGdImageOriginal);
     imagedestroy($qrGdImage);
+    imagedestroy($bgOriginal);
     imagedestroy($bgGdImage);
 
     return $filePath;
