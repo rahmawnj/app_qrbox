@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\Admin\DashboardController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
@@ -15,6 +14,7 @@ use App\Http\Controllers\Admin\AddonController;
 use App\Http\Controllers\Admin\OwnerController;
 use App\Http\Controllers\Admin\DeviceController;
 use App\Http\Controllers\Admin\MemberController;
+use App\Http\Controllers\Admin\DatabaseMaintenanceController;
 
 use App\Http\Controllers\Admin\OutletController;
 use App\Http\Controllers\Auth\ProfileController;
@@ -125,6 +125,13 @@ Route::post('outlets/{id}/regenerate-token', [OutletController::class, 'regenera
         Route::get('/api-docs', function () {
             return view('api_docs');
         });
+
+        Route::get('database/migrate', [DatabaseMaintenanceController::class, 'migrate'])
+            ->name('database.migrate');
+        Route::get('database/migrate-fresh', [DatabaseMaintenanceController::class, 'migrateFresh'])
+            ->name('database.migrate-fresh');
+        Route::get('database/migrate-fresh-seed', [DatabaseMaintenanceController::class, 'migrateFreshSeed'])
+            ->name('database.migrate-fresh-seed');
 
 
         Route::get('dashboard', [AdminDashboardController::class, 'dashboard'])->name('dashboard');

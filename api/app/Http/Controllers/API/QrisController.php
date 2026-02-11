@@ -189,280 +189,269 @@ class QrisController extends Controller
     }
 
     function generateQRCode($qrUrl, $orderId, $textAbove = 'Merchant Name', $textBelow = 'Rp 0')
-{
-    $targetWidth = 320;
-    $targetHeight = 480;
+    {
+        $targetWidth = 320;
+        $targetHeight = 480;
 
-    $backgroundImageUrl = asset('assets/img/qristempl.jpg');
-    $bgFilePath = public_path(parse_url($backgroundImageUrl, PHP_URL_PATH));
-    $bgOriginal = imagecreatefromjpeg($bgFilePath);
+        $backgroundImageUrl = asset('assets/img/qristempl.jpg');
+        $bgFilePath = public_path(parse_url($backgroundImageUrl, PHP_URL_PATH));
+        $bgOriginal = imagecreatefromjpeg($bgFilePath);
 
-    // 1. Buat kanvas kosong 320x480 warna putih
-    $bgGdImage = imagecreatetruecolor($targetWidth, $targetHeight);
-    $white = imagecolorallocate($bgGdImage, 255, 255, 255);
-    imagefill($bgGdImage, 0, 0, $white);
+        $bgGdImage = imagecreatetruecolor($targetWidth, $targetHeight);
+        $white = imagecolorallocate($bgGdImage, 255, 255, 255);
+        imagefill($bgGdImage, 0, 0, $white);
 
-    // 2. Tempel LOGO/HEADER (Turunkan posisi Y ke 40 agar tidak mepet atas)
-    $headerY = 20;
-    $originalWidth = imagesx($bgOriginal);
-    $originalHeight = imagesy($bgOriginal);
+        $headerY = 20;
+        $originalWidth = imagesx($bgOriginal);
+        $originalHeight = imagesy($bgOriginal);
 
-    // Kita tempel background asli ke kanvas baru dengan posisi Y yang sudah diturunkan
-    imagecopyresampled($bgGdImage, $bgOriginal, 0, $headerY, 0, 0, $targetWidth, (int)($originalHeight * ($targetWidth / $originalWidth)), $originalWidth, $originalHeight);
+        imagecopyresampled($bgGdImage, $bgOriginal, 0, $headerY, 0, 0, $targetWidth, (int)($originalHeight * ($targetWidth / $originalWidth)), $originalWidth, $originalHeight);
 
-    // 3. Olah QR Code (Dibuat ukuran 280 agar penuh)
-    $qrImageContent = file_get_contents($qrUrl);
-    $qrGdImageOriginal = imagecreatefromstring($qrImageContent);
-    $qrSize = 300;
-    $qrGdImage = imagecreatetruecolor($qrSize, $qrSize);
-    imagecopyresampled($qrGdImage, $qrGdImageOriginal, 0, 0, 0, 0, $qrSize, $qrSize, imagesx($qrGdImageOriginal), imagesy($qrGdImageOriginal));
+        $qrImageContent = file_get_contents($qrUrl);
+        $qrGdImageOriginal = imagecreatefromstring($qrImageContent);
+        $qrSize = 300;
+        $qrGdImage = imagecreatetruecolor($qrSize, $qrSize);
+        imagecopyresampled($qrGdImage, $qrGdImageOriginal, 0, 0, 0, 0, $qrSize, $qrSize, imagesx($qrGdImageOriginal), imagesy($qrGdImageOriginal));
 
-    // 4. Koordinat Layout (Sekarang semua relatif terhadap header yang sudah turun)
-    $merchantY = $headerY + 80; // Nama toko di bawah logo QRIS
-    $qrY = $merchantY + 30;     // QR di bawah nama toko
-    $priceY = 430;              // Harga di paling bawah
+        $merchantY = $headerY + 80;
+        $qrY = $merchantY + 30;
+        $priceY = 430;
 
-    // Tempel QR ke kanvas
-    $qrX = ($targetWidth - $qrSize) / 2;
-    imagecopy($bgGdImage, $qrGdImage, (int)$qrX, (int)$qrY, 0, 0, $qrSize, $qrSize);
+        $qrX = ($targetWidth - $qrSize) / 2;
+        imagecopy($bgGdImage, $qrGdImage, (int)$qrX, (int)$qrY, 0, 0, $qrSize, $qrSize);
 
-    // 5. Render Teks
-    $textColor = imagecolorallocate($bgGdImage, 0, 0, 0);
-    $fontSize = 5;
+        $textColor = imagecolorallocate($bgGdImage, 0, 0, 0);
+        $fontSize = 5;
 
-    // Nama Merchant
-    $textAboveWidth = imagefontwidth($fontSize) * strlen($textAbove);
-    $textAboveX = ($targetWidth - $textAboveWidth) / 2;
-    imagestring($bgGdImage, $fontSize, (int)$textAboveX, (int)$merchantY, $textAbove, $textColor);
+        $textAboveWidth = imagefontwidth($fontSize) * strlen($textAbove);
+        $textAboveX = ($targetWidth - $textAboveWidth) / 2;
+        imagestring($bgGdImage, $fontSize, (int)$textAboveX, (int)$merchantY, $textAbove, $textColor);
 
-    // Harga (Dibuat lebih besar/tebal dengan tumpukan 3 layer)
-    $textBelowWidth = imagefontwidth($fontSize) * strlen($textBelow);
-    $textBelowX = ($targetWidth - $textBelowWidth) / 2;
+        $textBelowWidth = imagefontwidth($fontSize) * strlen($textBelow);
+        $textBelowX = ($targetWidth - $textBelowWidth) / 2;
 
-    // Gambar teks 3x (geser 1px) supaya terlihat lebih GEDE dan TEBAL
-    imagestring($bgGdImage, $fontSize, (int)$textBelowX, (int)$priceY, $textBelow, $textColor);
-    imagestring($bgGdImage, $fontSize, (int)$textBelowX + 1, (int)$priceY, $textBelow, $textColor);
-    imagestring($bgGdImage, $fontSize, (int)$textBelowX, (int)$priceY + 1, $textBelow, $textColor);
+        imagestring($bgGdImage, $fontSize, (int)$textBelowX, (int)$priceY, $textBelow, $textColor);
+        imagestring($bgGdImage, $fontSize, (int)$textBelowX + 1, (int)$priceY, $textBelow, $textColor);
+        imagestring($bgGdImage, $fontSize, (int)$textBelowX, (int)$priceY + 1, $textBelow, $textColor);
 
-    // 6. Simpan
-    $folder = storage_path('app/public/qrcodes/');
-    if (!file_exists($folder)) { mkdir($folder, 0777, true); }
-    $filePath = $folder . $orderId . '.jpg';
-    imagejpeg($bgGdImage, $filePath, 100);
+        $folder = storage_path('app/public/qrcodes/');
+        if (!file_exists($folder)) { mkdir($folder, 0777, true); }
+        $filePath = $folder . $orderId . '.jpg';
+        imagejpeg($bgGdImage, $filePath, 100);
 
-    imagedestroy($qrGdImageOriginal);
-    imagedestroy($qrGdImage);
-    imagedestroy($bgOriginal);
-    imagedestroy($bgGdImage);
+        imagedestroy($qrGdImageOriginal);
+        imagedestroy($qrGdImage);
+        imagedestroy($bgOriginal);
+        imagedestroy($bgGdImage);
 
-    return $filePath;
-}
-
-public function checkPaymentStatus(Request $request)
-{
-    $apiToken = $request->query('api_token');
-    $orderId  = $request->query('order_id');
-
-    if (!$orderId) {
-        return response()->json([
-            'status'  => 'error',
-            'message' => 'Order ID is required'
-        ], 400);
+        return $filePath;
     }
 
-    try {
-        $transaction = Transaction::where('order_id', $orderId)
-            ->where('created_at', '>=', now()->subHour())
-            ->with('deviceTransactions')
-            ->first();
+    public function checkPaymentStatus(Request $request)
+    {
+        $apiToken = $request->query('api_token');
+        $orderId  = $request->query('order_id');
 
-        // ❌ TRANSACTION TIDAK DITEMUKAN
-        if (!$transaction) {
+        if (!$orderId) {
             return response()->json([
                 'status'  => 'error',
-                'message' => [
-                    'order_id'    => $orderId,
-                    'description' => 'Order not found.'
-                ]
-            ]);
+                'message' => 'Order ID is required'
+            ], 400);
         }
 
-        $transactionStatus = $transaction->status;
-        $qrCodeImage       = $transaction->qr_code_image;
+        try {
+            $transaction = Transaction::where('order_id', $orderId)
+                ->where('created_at', '>=', now()->subHour())
+                ->with('deviceTransactions')
+                ->first();
 
-        // ⛔ BELUM DIBAYAR → JANGAN SENTUH DEVICE
-        if ($transactionStatus !== 'success') {
-            return response()->json([
-                'status'  => 'success',
-                'message' => [
-                    'order_id'        => $orderId,
-                    'payment_status'  => $transactionStatus,
-                    'qr_code_deleted' => false,
-                    'description'     => 'Pembayaran tidak berhasil.'
-                ]
-            ]);
-        }
+            // ❌ TRANSACTION TIDAK DITEMUKAN
+            if (!$transaction) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => [
+                        'order_id'    => $orderId,
+                        'description' => 'Order not found.'
+                    ]
+                ]);
+            }
 
-        // ✅ BARU MASUK KE DEVICE TRANSACTION
-        $deviceTransaction = $transaction->deviceTransactions->first();
-
-        if (!$deviceTransaction) {
-            throw new \Exception('Device transaction not found for successful payment.');
-        }
-
-        $device = Device::where('code', $deviceTransaction->device_code)->first();
-
-        if (!$device || !$device->outlet) {
-            throw new \Exception('Device or outlet not found.');
-        }
-
-        // 🔐 VALIDASI TOKEN SETELAH PAYMENT SUCCESS
-        if ($device->outlet->device_token !== $apiToken) {
-            return response()->json([
-                "status"  => "error",
-                "message" => "Token tidak valid atau tidak diizinkan"
-            ], 401);
-        }
-
-        // 🔄 UPDATE DEVICE TRANSACTION
-        $deviceStatus = $deviceTransaction->status;
-
-        $deviceTransaction->update([
-            'status'            => false,
-            'bypass_activation' => now()
-        ]);
-
-        Log::info("DeviceTransaction ID {$deviceTransaction->id} updated after successful payment.");
-
-        if ($qrCodeImage) {
-            Log::info("QR Code for order ID {$orderId} would be deleted here.");
-        }
-
-        return response()->json([
-            'status'  => 'success',
-            'message' => [
-                'type'             => $deviceTransaction->service_type,
-                'order_id'         => $orderId,
-                'payment_status'   => $transactionStatus,
-                'device_status'    => $deviceStatus,
-                'qr_code_deleted'  => (bool) $qrCodeImage,
-                'description'      => 'Pembayaran Berhasil.'
-            ]
-        ]);
-
-    } catch (\Exception $e) {
-        Log::error('Error checking payment status: ' . $e->getMessage(), [
-            'order_id'  => $orderId,
-            'exception' => $e
-        ]);
-
-        return response()->json([
-            'status'  => 'error',
-            'message' => 'Database error: ' . $e->getMessage()
-        ], 500);
-    }
-}
-
-
-   public function checkPaymentStatus2(Request $request)
-{
-    $service_type = $request->query('service_type');
-    $code_device = $request->query('device_code');
-    $apiToken = $request->query('api_token');
-
-    if (!$service_type) {
-        return response()->json([
-            'status'  => 'error',
-            'message' => 'service_type is required'
-        ], 400);
-    }
-    if (!$code_device) {
-        return response()->json([
-            'status'  => 'error',
-            'message' => 'device_code is required'
-        ], 400);
-    }
-
-    $device = Device::where('code', $code_device)->first();
-
-    if (!$device) {
-        return response()->json([
-            'status'  => 'error',
-            'message' => 'device code is not registered'
-        ], 400);
-    }
-     if ($device->outlet->device_token !== $apiToken) {
-            return response()->json([
-                "status" => "error",
-                "message" => "Token tidak valid atau tidak diizinkan"
-            ], 401);
-        }
-
-
-    try {
-        $transaction = Transaction::where('status', 'success') // Langsung cari transaksi yang status-nya 'success'
-            ->whereHas('deviceTransactions', function ($query) use ($service_type, $code_device) {
-                $query->where('service_type', $service_type)
-                    ->where('device_code', $code_device)
-                    ->where('status', true)
-                    ;
-            })
-            ->where('created_at', '>=', now()->subHour())
-            ->orderBy('created_at', 'asc')
-            ->with('deviceTransactions')
-            ->first();
-
-        $orderId = $transaction ? $transaction->order_id : null;
-
-        if ($transaction) {
             $transactionStatus = $transaction->status;
-            $qrCodeImage = $transaction->qr_code_image;
+            $qrCodeImage       = $transaction->qr_code_image;
 
+            // ⛔ BELUM DIBAYAR → JANGAN SENTUH DEVICE
+            if ($transactionStatus !== 'success') {
+                return response()->json([
+                    'status'  => 'success',
+                    'message' => [
+                        'order_id'        => $orderId,
+                        'payment_status'  => $transactionStatus,
+                        'qr_code_deleted' => false,
+                        'description'     => 'Pembayaran tidak berhasil.'
+                    ]
+                ]);
+            }
+
+            // ✅ BARU MASUK KE DEVICE TRANSACTION
             $deviceTransaction = $transaction->deviceTransactions->first();
-            $deviceStatus = null;
 
-            if ($deviceTransaction) {
-                $deviceStatus = $deviceTransaction->status;
-                if ($qrCodeImage) {
-                    Log::info("QR Code for order ID {$orderId} would be deleted here (checkPaymentStatus2).");
-                }
-                // Update device transaction status to false and record activation time
-                $deviceTransaction->update(['status' => false, 'activated_at' => now()]);
-                Log::info("DeviceTransaction ID {$deviceTransaction->id} for Transaction ID {$transaction->id} updated to status: false (checkPaymentStatus2).");
+            if (!$deviceTransaction) {
+                throw new \Exception('Device transaction not found for successful payment.');
+            }
+
+            $device = Device::where('code', $deviceTransaction->device_code)->first();
+
+            if (!$device || !$device->outlet) {
+                throw new \Exception('Device or outlet not found.');
+            }
+
+            // 🔐 VALIDASI TOKEN SETELAH PAYMENT SUCCESS
+            if ($device->outlet->device_token !== $apiToken) {
+                return response()->json([
+                    "status"  => "error",
+                    "message" => "Token tidak valid atau tidak diizinkan"
+                ], 401);
+            }
+
+            // 🔄 UPDATE DEVICE TRANSACTION
+            $deviceStatus = $deviceTransaction->status;
+
+            $deviceTransaction->update([
+                'status'            => false,
+                'bypass_activation' => now()
+            ]);
+
+            Log::info("DeviceTransaction ID {$deviceTransaction->id} updated after successful payment.");
+
+            if ($qrCodeImage) {
+                Log::info("QR Code for order ID {$orderId} would be deleted here.");
             }
 
             return response()->json([
                 'status'  => 'success',
                 'message' => [
-                    'order_id'        => $orderId,
-                    'payment_status'  => $transactionStatus,
-                    'device_status'   => $deviceStatus,
-                    'amount'          => $transaction->amount,
-                    'description'     => 'Pembayaran Berhasil.',
-                    'qr_code_deleted' => (bool)$qrCodeImage,
+                    'type'             => $deviceTransaction->service_type,
+                    'order_id'         => $orderId,
+                    'payment_status'   => $transactionStatus,
+                    'device_status'    => $deviceStatus,
+                    'qr_code_deleted'  => (bool) $qrCodeImage,
+                    'description'      => 'Pembayaran Berhasil.'
                 ]
             ]);
-        } else {
+
+        } catch (\Exception $e) {
+            Log::error('Error checking payment status: ' . $e->getMessage(), [
+                'order_id'  => $orderId,
+                'exception' => $e
+            ]);
+
             return response()->json([
-                'status'  => 'error', // Ubah status menjadi 'error' karena tidak ada transaksi yang ditemukan
-                'message' => [
-                    'order_id'    => null,
-                    'description' => 'Order not found for the given criteria or payment is not yet successful.'
-                ]
-            ]);
+                'status'  => 'error',
+                'message' => 'Database error: ' . $e->getMessage()
+            ], 500);
         }
-    } catch (\Exception $e) {
-        Log::error('Error checking payment status 2: ' . $e->getMessage(), [
-            'service_type' => $service_type ?? 'N/A',
-            'device_code' => $code_device ?? 'N/A',
-            'exception' => $e
-        ]);
-        return response()->json([
-            'status'  => 'error',
-            'message' => 'Database error: ' . $e->getMessage()
-        ], 500);
     }
-}
+
+
+    public function checkPaymentStatus2(Request $request)
+    {
+        $service_type = $request->query('service_type');
+        $code_device = $request->query('device_code');
+        $apiToken = $request->query('api_token');
+
+        if (!$service_type) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'service_type is required'
+            ], 400);
+        }
+        if (!$code_device) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'device_code is required'
+            ], 400);
+        }
+
+        $device = Device::where('code', $code_device)->first();
+
+        if (!$device) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'device code is not registered'
+            ], 400);
+        }
+        if ($device->outlet->device_token !== $apiToken) {
+                return response()->json([
+                    "status" => "error",
+                    "message" => "Token tidak valid atau tidak diizinkan"
+                ], 401);
+            }
+
+
+        try {
+            $transaction = Transaction::where('status', 'success') // Langsung cari transaksi yang status-nya 'success'
+                ->whereHas('deviceTransactions', function ($query) use ($service_type, $code_device) {
+                    $query->where('service_type', $service_type)
+                        ->where('device_code', $code_device)
+                        ->where('status', true)
+                        ;
+                })
+                ->where('created_at', '>=', now()->subHour())
+                ->orderBy('created_at', 'asc')
+                ->with('deviceTransactions')
+                ->first();
+
+            $orderId = $transaction ? $transaction->order_id : null;
+
+            if ($transaction) {
+                $transactionStatus = $transaction->status;
+                $qrCodeImage = $transaction->qr_code_image;
+
+                $deviceTransaction = $transaction->deviceTransactions->first();
+                $deviceStatus = null;
+
+                if ($deviceTransaction) {
+                    $deviceStatus = $deviceTransaction->status;
+                    if ($qrCodeImage) {
+                        Log::info("QR Code for order ID {$orderId} would be deleted here (checkPaymentStatus2).");
+                    }
+                    // Update device transaction status to false and record activation time
+                    $deviceTransaction->update(['status' => false, 'activated_at' => now()]);
+                    Log::info("DeviceTransaction ID {$deviceTransaction->id} for Transaction ID {$transaction->id} updated to status: false (checkPaymentStatus2).");
+                }
+
+                return response()->json([
+                    'status'  => 'success',
+                    'message' => [
+                        'order_id'        => $orderId,
+                        'payment_status'  => $transactionStatus,
+                        'device_status'   => $deviceStatus,
+                        'amount'          => $transaction->amount,
+                        'description'     => 'Pembayaran Berhasil.',
+                        'qr_code_deleted' => (bool)$qrCodeImage,
+                    ]
+                ]);
+            } else {
+                return response()->json([
+                    'status'  => 'error', // Ubah status menjadi 'error' karena tidak ada transaksi yang ditemukan
+                    'message' => [
+                        'order_id'    => null,
+                        'description' => 'Order not found for the given criteria or payment is not yet successful.'
+                    ]
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::error('Error checking payment status 2: ' . $e->getMessage(), [
+                'service_type' => $service_type ?? 'N/A',
+                'device_code' => $code_device ?? 'N/A',
+                'exception' => $e
+            ]);
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Database error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 
     private function deleteQRCode($orderId)
     {
@@ -473,130 +462,130 @@ public function checkPaymentStatus(Request $request)
         }
     }
 
-public function updateTransactionStatus(Request $request)
-{
-    $notification = $request->json()->all();
-    Log::info('Midtrans Callback Received:', $notification);
+    public function updateTransactionStatus(Request $request)
+    {
+        $notification = $request->json()->all();
+        Log::info('Midtrans Callback Received:', $notification);
 
-    // 1. Identifikasi Data Utama dari Midtrans
-    $orderId = $notification['order_id'] ?? null;
-    $midtransStatus = $notification['transaction_status'] ?? null;
-    $grossAmount = $notification['gross_amount'] ?? 0;
+        // 1. Identifikasi Data Utama dari Midtrans
+        $orderId = $notification['order_id'] ?? null;
+        $midtransStatus = $notification['transaction_status'] ?? null;
+        $grossAmount = $notification['gross_amount'] ?? 0;
 
-    if (!$orderId || !$midtransStatus) {
-        Log::warning('Invalid Midtrans notification data:', $notification);
-        return response()->json(['status' => 'error', 'message' => 'Invalid data.'], 400);
-    }
-
-    $statusMap = [
-        'settlement' => 'success',
-        'capture'    => 'success',
-        'pending'    => 'pending',
-        'deny'       => 'failed',
-        'expire'     => 'expired',
-        'cancel'     => 'failed'
-    ];
-
-    $internalStatus = $statusMap[$midtransStatus] ?? 'pending';
-
-    DB::beginTransaction();
-    try {
-        // 3. Cari Transaksi berdasarkan order_id
-        $transaction = Transaction::where('order_id', $orderId)->first();
-
-        if (!$transaction) {
-            throw new \Exception("Transaction with order_id '$orderId' not found.");
+        if (!$orderId || !$midtransStatus) {
+            Log::warning('Invalid Midtrans notification data:', $notification);
+            return response()->json(['status' => 'error', 'message' => 'Invalid data.'], 400);
         }
 
-        // Cegah proses ulang jika status sudah sukses
-        if ($transaction->status === 'success') {
-            return response()->json(['status' => 'success', 'message' => 'Already processed.']);
-        }
+        $statusMap = [
+            'settlement' => 'success',
+            'capture'    => 'success',
+            'pending'    => 'pending',
+            'deny'       => 'failed',
+            'expire'     => 'expired',
+            'cancel'     => 'failed'
+        ];
 
-        // 4. Update Status Transaksi Utama
-        $transaction->update(['status' => $internalStatus]);
+        $internalStatus = $statusMap[$midtransStatus] ?? 'pending';
 
-        // 5. Jika SUCCESS, Proses Logika Bisnis (Update Saldo & Create Payment)
-        if ($internalStatus === 'success') {
+        DB::beginTransaction();
+        try {
+            // 3. Cari Transaksi berdasarkan order_id
+            $transaction = Transaction::where('order_id', $orderId)->first();
 
-            // A. Update Saldo Owner
-            // Gunakan $transaction->amount (net amount sesuai skema tabel kamu)
-            $owner = $transaction->owner;
-            if ($owner) {
-                $owner->increment('balance', $transaction->amount);
-                Log::info("Balance Updated for Owner {$owner->id}. Added: {$transaction->amount}");
+            if (!$transaction) {
+                throw new \Exception("Transaction with order_id '$orderId' not found.");
             }
-            $selfServiceTransaction = $transaction->selfServiceTransaction;
 
-            // dd($selfServiceTransaction);
-            Payment::updateOrCreate(
-                ['transaction_id' => $transaction->id],
-                [
-                    'outlet_id'              => $selfServiceTransaction->outlet_id, // Pastikan di model Transaction ada outlet_id
-                    'owner_id'               => $transaction->owner_id,
-                    'amount'                 => $transaction->amount, // Net amount
-                    'payment_time'           => $notification['settlement_time'] ?? now(),
-                    'timezone'               => $transaction->timezone,
-                    'service_fee_amount'     => $transaction->service_fee_amount,
-                    'service_fee_percentage' => $transaction->service_fee_percentage,
-                    'notes'                  => 'Midtrans payment: ' . ($notification['payment_type'] ?? 'unknown'),
-                ]
-            );
+            // Cegah proses ulang jika status sudah sukses
+            if ($transaction->status === 'success') {
+                return response()->json(['status' => 'success', 'message' => 'Already processed.']);
+            }
 
-            // if (isset($notification['metadata']['device_code'])) {
-                DeviceTransaction::updateOrCreate(
+            // 4. Update Status Transaksi Utama
+            $transaction->update(['status' => $internalStatus]);
+
+            // 5. Jika SUCCESS, Proses Logika Bisnis (Update Saldo & Create Payment)
+            if ($internalStatus === 'success') {
+
+                // A. Update Saldo Owner
+                // Gunakan $transaction->amount (net amount sesuai skema tabel kamu)
+                $owner = $transaction->owner;
+                if ($owner) {
+                    $owner->increment('balance', $transaction->amount);
+                    Log::info("Balance Updated for Owner {$owner->id}. Added: {$transaction->amount}");
+                }
+                $selfServiceTransaction = $transaction->selfServiceTransaction;
+
+                // dd($selfServiceTransaction);
+                Payment::updateOrCreate(
                     ['transaction_id' => $transaction->id],
                     [
-                        'owner_id'       => $selfServiceTransaction->owner_id,
-                        'outlet_id'       => $selfServiceTransaction->outlet_id,
-                        'device_code'       => $selfServiceTransaction->device_code,
-                        'service_type'      => $selfServiceTransaction->service_type,
-                        'bypass_activation' => now(),
-                        'status'            => true,
+                        'outlet_id'              => $selfServiceTransaction->outlet_id, // Pastikan di model Transaction ada outlet_id
+                        'owner_id'               => $transaction->owner_id,
+                        'amount'                 => $transaction->amount, // Net amount
+                        'payment_time'           => $notification['settlement_time'] ?? now(),
+                        'timezone'               => $transaction->timezone,
+                        'service_fee_amount'     => $transaction->service_fee_amount,
+                        'service_fee_percentage' => $transaction->service_fee_percentage,
+                        'notes'                  => 'Midtrans payment: ' . ($notification['payment_type'] ?? 'unknown'),
                     ]
                 );
-                Log::info("Device activated for Order ID: {$orderId}");
-            // }
 
-            if (method_exists($this, 'sendSuccessNotifications')) {
-                // $this->sendSuccessNotifications($transaction, $transaction->amount);
+                // if (isset($notification['metadata']['device_code'])) {
+                    DeviceTransaction::updateOrCreate(
+                        ['transaction_id' => $transaction->id],
+                        [
+                            'owner_id'       => $selfServiceTransaction->owner_id,
+                            'outlet_id'       => $selfServiceTransaction->outlet_id,
+                            'device_code'       => $selfServiceTransaction->device_code,
+                            'service_type'      => $selfServiceTransaction->service_type,
+                            'bypass_activation' => now(),
+                            'status'            => true,
+                        ]
+                    );
+                    Log::info("Device activated for Order ID: {$orderId}");
+                // }
+
+                if (method_exists($this, 'sendSuccessNotifications')) {
+                    // $this->sendSuccessNotifications($transaction, $transaction->amount);
+                }
             }
+
+            DB::commit();
+            return response()->json(['status' => 'success', 'message' => 'Status updated to ' . $internalStatus]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Midtrans Callback Error: ' . $e->getMessage());
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
-
-        DB::commit();
-        return response()->json(['status' => 'success', 'message' => 'Status updated to ' . $internalStatus]);
-
-    } catch (\Exception $e) {
-        DB::rollBack();
-        Log::error('Midtrans Callback Error: ' . $e->getMessage());
-        return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
     }
-}
 /**
  * Helper function untuk merapikan notifikasi
  */
-private function sendSuccessNotifications($transaction, $amountPaid)
-{
-    $owner = $transaction->owner;
-    // $cashiers = $transaction->outlet->cashiers->map(fn($c) => $c->user);
-    // $recipients = $cashiers->push($owner->user);
-    $formattedAmount = number_format($amountPaid, 0, ',', '.');
+    private function sendSuccessNotifications($transaction, $amountPaid)
+    {
+        $owner = $transaction->owner;
+        // $cashiers = $transaction->outlet->cashiers->map(fn($c) => $c->user);
+        // $recipients = $cashiers->push($owner->user);
+        $formattedAmount = number_format($amountPaid, 0, ',', '.');
 
-    event(new NotificationEvent(
-        recipients: $recipients,
-        title: '💸 Pembayaran Berhasil',
-        message: "Transaksi ID {$transaction->order_id} sebesar Rp{$formattedAmount} telah masuk ke saldo.",
-        url: route('partner.qris.history'),
-    ));
-
-    $admins = User::where('role', 'admin')->get();
-    if ($admins->isNotEmpty()) {
         event(new NotificationEvent(
-            recipients: $admins,
-            title: '✅ Transaksi Berhasil',
-            message: "Transaksi ID **{$transaction->order_id}** telah selesai.",
-            url: route('admin.qris.history', ['transaction' => $transaction->id]),
+            recipients: $recipients,
+            title: '💸 Pembayaran Berhasil',
+            message: "Transaksi ID {$transaction->order_id} sebesar Rp{$formattedAmount} telah masuk ke saldo.",
+            url: route('partner.qris.history'),
         ));
+
+        $admins = User::where('role', 'admin')->get();
+        if ($admins->isNotEmpty()) {
+            event(new NotificationEvent(
+                recipients: $admins,
+                title: '✅ Transaksi Berhasil',
+                message: "Transaksi ID **{$transaction->order_id}** telah selesai.",
+                url: route('admin.qris.history', ['transaction' => $transaction->id]),
+            ));
+        }
     }
-}
 }
