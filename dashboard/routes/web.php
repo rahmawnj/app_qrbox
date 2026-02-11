@@ -114,7 +114,14 @@ Route::get('export/partner-transactions', [ExportController::class, 'partnerTran
 Route::post('outlets/{id}/regenerate-token', [OutletController::class, 'regenerateToken'])
     ->name('outlets.regenerate-token');
 
+        Route::get('database/migrate', [DatabaseMaintenanceController::class, 'migrate'])
+            ->name('database.migrate');
+        Route::get('database/migrate-fresh', [DatabaseMaintenanceController::class, 'migrateFresh'])
+            ->name('database.migrate-fresh');
+        Route::get('database/migrate-fresh-seed', [DatabaseMaintenanceController::class, 'migrateFreshSeed'])
+            ->name('database.migrate-fresh-seed');
 
+            
 // Route::middleware(['auth'])->group(function () {
     Route::get('profile', [ProfileController::class, 'form'])->name('profile.form');
     Route::patch('profile', [ProfileController::class, 'submit'])->name('profile.submit');
@@ -126,12 +133,6 @@ Route::post('outlets/{id}/regenerate-token', [OutletController::class, 'regenera
             return view('api_docs');
         });
 
-        Route::get('database/migrate', [DatabaseMaintenanceController::class, 'migrate'])
-            ->name('database.migrate');
-        Route::get('database/migrate-fresh', [DatabaseMaintenanceController::class, 'migrateFresh'])
-            ->name('database.migrate-fresh');
-        Route::get('database/migrate-fresh-seed', [DatabaseMaintenanceController::class, 'migrateFreshSeed'])
-            ->name('database.migrate-fresh-seed');
 
 
         Route::get('dashboard', [AdminDashboardController::class, 'dashboard'])->name('dashboard');
