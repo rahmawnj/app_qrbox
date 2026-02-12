@@ -121,10 +121,12 @@ class DashboardController extends Controller
         }
 
         // --- 7. TREN PER JAM & TOP DEVICE ---
-        $hourlyData = (clone $baseTransaction)
-            ->select(DB::raw('HOUR(created_at) as hour'), DB::raw('COUNT(*) as total'))
-            ->groupBy('hour')
-            ->get();
+       $hourlyData = (clone $baseTransaction)
+    ->selectRaw('EXTRACT(HOUR FROM created_at) as hour, COUNT(*) as total')
+    ->groupBy('hour')
+    ->orderBy('hour')
+    ->get();
+
 
         $hourlyLabels = []; $hourlyValues = [];
         for ($i = 0; $i < 24; $i++) {
