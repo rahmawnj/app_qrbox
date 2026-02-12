@@ -124,9 +124,11 @@ Route::post('outlets/{id}/regenerate-token', [OutletController::class, 'regenera
             ->name('database.migrate-fresh-seed');
 Route::get('/clear-config', function () {
     Artisan::call('config:clear');
-        Artisan::call('config:cache');
-
+    Artisan::call('config:cache');
     Artisan::call('cache:clear');
+    Artisan::call('route:clear');
+    Artisan::call('view:clear');
+
     return 'Config cleared';
 });
 
