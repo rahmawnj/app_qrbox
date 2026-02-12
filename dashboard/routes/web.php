@@ -1,53 +1,55 @@
 <?php
 
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Response;
-
-use App\Http\Controllers\ExportController;
-use App\Http\Controllers\LandingController;
-use App\Http\Controllers\SettingController;
-use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\AccountController;
 use App\Http\Controllers\Admin\AddonController;
-use App\Http\Controllers\Admin\OwnerController;
+use App\Http\Controllers\Admin\AdminPaymentController;
+use App\Http\Controllers\Admin\BypassLogController as AdminBypassLogController;
+use App\Http\Controllers\Admin\CashierController;
+
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\DatabaseMaintenanceController;
 use App\Http\Controllers\Admin\DeviceController;
 use App\Http\Controllers\Admin\MemberController;
-use App\Http\Controllers\Admin\DatabaseMaintenanceController;
-
 use App\Http\Controllers\Admin\OutletController;
-use App\Http\Controllers\Auth\ProfileController;
-use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\Admin\AccountController;
-use App\Http\Controllers\Admin\CashierController;
+use App\Http\Controllers\Admin\OwnerController;
 use App\Http\Controllers\Admin\ServiceController;
-use App\Http\Controllers\Partner\TopupController;
-use App\Http\Controllers\CustomerServiceController;
 use App\Http\Controllers\Admin\ServiceTypeController;
-use App\Http\Controllers\Admin\AdminPaymentController;
-use App\Http\Controllers\Partner\WithdrawalController;
-use App\Http\Controllers\Partner\ReceiptConfigController;
-use App\Http\Controllers\Partner\CashierPaymentController;
-use App\Http\Controllers\Partner\DashboardOwnerController;
-use App\Http\Controllers\Partner\PartnerCashierController;
-use App\Http\Controllers\Partner\PartnerPaymentController;
-use App\Http\Controllers\Landing\MemberDashboardController;
-use App\Http\Controllers\Member\MemberTransactionController;
-use App\Http\Controllers\Member\MemberNotificationController;
+
 use App\Http\Controllers\Admin\TopupController as AdminTopupController;
+use App\Http\Controllers\Admin\TransactionController as AdminTransactionController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\WithdrawalController as AdminWithdrawalController;
+use App\Http\Controllers\Auth\ProfileController;
+use App\Http\Controllers\CustomerServiceController;
+use App\Http\Controllers\ExportController;
 use App\Http\Controllers\Landing\HomeController as LandingHomeController;
+use App\Http\Controllers\Landing\MemberDashboardController;
+use App\Http\Controllers\LandingController;
+use App\Http\Controllers\Member\MemberNotificationController;
+use App\Http\Controllers\Member\MemberTransactionController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Partner\AddonController as PartnerAddonController;
 use App\Http\Controllers\Partner\BrandController as PartnerBrandController;
+use App\Http\Controllers\Partner\BypassLogController as PartnerBypassLogController;
+use App\Http\Controllers\Partner\CashierPaymentController;
+use App\Http\Controllers\Partner\DashboardOwnerController;
 use App\Http\Controllers\Partner\DeviceController as PartnerDeviceController;
 use App\Http\Controllers\Partner\MemberController as PartnerMemberController;
 use App\Http\Controllers\Partner\OutletController as PartnerOutletController;
-use App\Http\Controllers\Admin\BypassLogController as AdminBypassLogController;
-use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
-use App\Http\Controllers\Admin\WithdrawalController as AdminWithdrawalController;
-use App\Http\Controllers\Admin\TransactionController as AdminTransactionController;
-use App\Http\Controllers\Partner\BypassLogController as PartnerBypassLogController;
+use App\Http\Controllers\Partner\PartnerCashierController;
+use App\Http\Controllers\Partner\PartnerPaymentController;
+use App\Http\Controllers\Partner\ReceiptConfigController;
+use App\Http\Controllers\Partner\TopupController;
 use App\Http\Controllers\Partner\TransactionController as PartnerTransactionController;
+use App\Http\Controllers\Partner\WithdrawalController;
+use App\Http\Controllers\SettingController;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -120,8 +122,13 @@ Route::post('outlets/{id}/regenerate-token', [OutletController::class, 'regenera
             ->name('database.migrate-fresh');
         Route::get('database/migrate-fresh-seed', [DatabaseMaintenanceController::class, 'migrateFreshSeed'])
             ->name('database.migrate-fresh-seed');
+Route::get('/clear-config', function () {
+    Artisan::call('config:clear');
+    Artisan::call('cache:clear');
+    return 'Config cleared';
+});
 
-            
+
 // Route::middleware(['auth'])->group(function () {
     Route::get('profile', [ProfileController::class, 'form'])->name('profile.form');
     Route::patch('profile', [ProfileController::class, 'submit'])->name('profile.submit');
