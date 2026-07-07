@@ -170,7 +170,7 @@ class QrisController extends Controller
                 "device_code"    => $deviceCode,
                 "transaction_id" => $transaction->id,
                 "payment_status" => "pending",
-                "qr_image"       => url('storage/qrcodes/' . basename($filePath)),
+                "qr_image"       => url('storage/app/public/qrcodes/' . basename($filePath)),
                 "expires_at"     => $midtransResult['expiry_time'] ?? null,
                 "original_price" => $originalPrice,
                 "final_amount"   => $finalAmountToPay,
