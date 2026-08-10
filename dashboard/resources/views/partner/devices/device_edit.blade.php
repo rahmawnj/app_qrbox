@@ -46,13 +46,14 @@
 
                         <div class="mb-3">
                             <label class="form-label">Outlet <span class="text-danger">*</span></label>
-                            <select name="outlet_id" class="form-control default-select2" required>
+                            <select class="form-control default-select2" disabled>
                                 @foreach ($outlets as $outlet)
                                     <option value="{{ $outlet->id }}" {{ old('outlet_id', $device->outlet_id) == $outlet->id ? 'selected' : '' }}>
                                         {{ $outlet->outlet_name }}
                                     </option>
                                 @endforeach
                             </select>
+                            <input type="hidden" name="outlet_id" value="{{ $device->outlet_id }}">
                         </div>
 
                         <div class="mb-3">
