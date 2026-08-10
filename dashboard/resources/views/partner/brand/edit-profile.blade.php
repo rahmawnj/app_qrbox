@@ -1,9 +1,10 @@
 @php
     $title = 'Edit Profil Brand';
-    $currentPage = request()->query('page', 'profile'); // Get current page from query parameter, default to 'profile'
+    $currentPage = request()->query('page', 'profile'); 
 @endphp
 
 @extends('layouts.dashboard.app')
+@section('title', $title ?? 'Edit Profil Brand')
 
 @push('styles')
     <link href="{{ asset('assets/plugins/gritter/css/jquery.gritter.css') }}" rel="stylesheet" />
@@ -88,13 +89,6 @@
     <div class="panel panel-inverse">
         <div class="panel-heading">
             <h4 class="panel-title">{{ $title }}</h4>
-            <div class="panel-heading-btn">
-                <a href="javascript:;" class="btn btn-xs btn-icon btn-default" data-toggle="panel-expand"><i
-                        class="fa fa-expand"></i></a>
-                <a href="javascript:;" class="btn btn-xs btn-icon btn-success" data-toggle="panel-reload"><i
-                        class="fa fa-redo"></i></a>
-            </div>
-            {{-- Moved tabs here, directly under panel-heading, but not inside the h4 div --}}
             <ul class="nav nav-tabs nav-tabs-modern"> {{-- Applied custom class here --}}
                 <li class="nav-item">
                     <a class="nav-link {{ $currentPage == 'profile' ? 'active' : '' }}"
@@ -109,6 +103,14 @@
                     </a>
                 </li>
             </ul>
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-default" data-toggle="panel-expand"><i
+                        class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-success" data-toggle="panel-reload"><i
+                        class="fa fa-redo"></i></a>
+            </div>
+            {{-- Moved tabs here, directly under panel-heading, but not inside the h4 div --}}
+            
         </div>
         <div class="panel-body">
             @if ($errors->any())
@@ -161,7 +163,7 @@
         @enderror
         <div class="mt-2">
             <img id="brandLogoPreview"
-                src="{{ getBrand()->brand_logo ? asset('storage/' . getBrand()->brand_logo) : asset('assets/img/default-brand-logo.png') }}"
+                src="{{ getBrand()->brand_logo ? asset(getBrand()->brand_logo) : asset('assets/img/default-brand-logo.png') }}"
                 alt="Brand Logo Preview" class="img-thumbnail" style="max-width: 150px;">
         </div>
     </div>

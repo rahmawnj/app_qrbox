@@ -290,8 +290,6 @@
 @endsection
 
 @push('scripts')
-    {{-- JQuery diperlukan untuk Date Range Picker --}}
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
     {{-- Moment.js diperlukan untuk Date Range Picker --}}
     <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
     {{-- Date Range Picker JS --}}

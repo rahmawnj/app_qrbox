@@ -105,10 +105,10 @@
                 <div class="menu-text">Profil Brand</div>
             </a>
         </div>
-        <div class="menu-item {{ Request::is('partner/receipt-config*') ? 'active' : '' }}">
+        {{-- <div class="menu-item {{ Request::is('partner/receipt-config*') ? 'active' : '' }}">
             <a href="{{ route('partner.receipt.config.edit') }}" class="menu-link">
                 <div class="menu-icon"><i class="fa fa-file-invoice"></i></div>
                 <div class="menu-text">Konfigurasi Struk</div>
             </a>
-        </div>
+        </div> --}}
     @endif

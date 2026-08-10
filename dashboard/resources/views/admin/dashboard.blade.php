@@ -1,5 +1,7 @@
 @extends('layouts.dashboard.app')
 
+@section('title', 'Dashboard')
+
 @push('styles')
     <link href="{{ asset('assets/plugins/bootstrap-daterangepicker/daterangepicker.css') }}" rel="stylesheet" />
     <link href="{{ asset('assets/plugins/select2/dist/css/select2.min.css') }}" rel="stylesheet" />

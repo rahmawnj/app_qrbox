@@ -4,6 +4,7 @@
     'subtitle' => 'Perbarui konfigurasi unit dan slot menu',
 ])
 @extends('layouts.dashboard.app')
+@section('title', $title ?? 'Edit Device')
 
 @section('content')
     <x-breadcrumb :items="$items" :title="$title" :subtitle="$subtitle" />

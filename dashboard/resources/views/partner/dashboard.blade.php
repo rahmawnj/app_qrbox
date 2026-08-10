@@ -1,8 +1,10 @@
 @props([
-    'title' => 'Dashboard Admin',
+    'title' => 'Dashboard',
 ])
 
 @extends('layouts.dashboard.app')
+
+@section('title', $title ?? 'Dashboard')
 
 @push('styles')
     <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>

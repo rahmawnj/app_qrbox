@@ -238,7 +238,7 @@ Route::get('/clear-config', function () {
         // Route::get('topup/histories', [TopupController::class, 'topupHistories'])->name('topup.histories');
         // Route::post('topup', [TopupController::class, 'processTopup'])->name('topup.store');
 
-        Route::get('bypass/logs', [AdminBypassLogController::class, 'index'])->name('bypass.logs');
+        Route::get('bypass/logs', [PartnerBypassLogController::class, 'index'])->name('bypass.logs');
 
         Route::get('transactions/all', [AdminTransactionController::class, 'index'])->name('transactions.index');
         Route::get('transactions/self-service/member', [PartnerTransactionController::class, 'self_service_member'])->name('transactions.self-service.member');

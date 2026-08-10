@@ -6,6 +6,7 @@
 @props([
     'title' => 'List Device',
 ])
+@section('title', $title ?? 'List Device')
 
 @push('styles')
     <link href="{{ asset('assets/plugins/switchery/dist/switchery.min.css') }}" rel="stylesheet" />
