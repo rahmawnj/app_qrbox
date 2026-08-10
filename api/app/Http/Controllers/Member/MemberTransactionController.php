@@ -118,7 +118,7 @@ class MemberTransactionController extends Controller
                 event(new NotificationEvent(
                     recipients: $user,
                     title: '🎉 Pembayaran Berhasil',
-                    message: 'Pembayaran sebesar Rp. ' . number_format($amount, 0, ',', '.') . ' untuk layanan ' . $serviceType->name . ' di outlet ' . $outlet->name . ' telah berhasil dilakukan.',
+                    message: 'Pembayaran sebesar Rp. ' . number_format($amount, 0, ',', '.') . ' untuk layanan ' . $serviceType->name . ' di outlet ' . $outlet->outlet_name . ' telah berhasil dilakukan.',
                     url: route('home.member.transactions')
                 ));
 
@@ -153,7 +153,7 @@ class MemberTransactionController extends Controller
 
                 event(new NotificationEvent(
                     recipients: $ownerAndCashiers,
-                    title: '💸 Transaksi Self-Service Baru di Outlet ' . $outlet->name,
+                    title: '💸 Transaksi Self-Service Baru di Outlet ' . $outlet->outlet_name,
                     message: 'Transaksi self-service sebesar Rp. ' . number_format($amount, 0, ',', '.') . ' telah berhasil dicatat di outlet Anda oleh member.',
                     url: route('partner.transactions.index')
                 ));
@@ -162,7 +162,7 @@ class MemberTransactionController extends Controller
                 event(new NotificationEvent(
                     recipients: $user,
                     title: '⚠️ Pembayaran Gagal',
-                    message: 'Transaksi sebesar Rp. ' . number_format($amount, 0, ',', '.') . ' untuk layanan ' . $serviceType->name . ' di outlet ' . $outlet->name . ' gagal karena saldo Anda tidak mencukupi.',
+                    message: 'Transaksi sebesar Rp. ' . number_format($amount, 0, ',', '.') . ' untuk layanan ' . $serviceType->name . ' di outlet ' . $outlet->outlet_name . ' gagal karena saldo Anda tidak mencukupi.',
                     url: route('home.member.transactions')
                 ));
             }

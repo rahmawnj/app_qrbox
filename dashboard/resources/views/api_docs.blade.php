@@ -3,280 +3,587 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QRBox | API Documentation</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>QRBox API Docs & Playground</title>
     <style>
-        html { scroll-behavior: smooth; }
-        pre { background: #1e293b; color: #f8fafc; padding: 1.25rem; border-radius: 0.75rem; overflow-x: auto; font-size: 0.875rem; border: 1px solid #334155; line-height: 1.5; }
-        .method-get { background: #10b981; }
-        .method-post { background: #3b82f6; }
-        section { scroll-margin-top: 2rem; }
-        code { color: #e11d48; font-weight: 600; font-family: monospace; }
+        :root {
+            color-scheme: light;
+            --ink: #18212f;
+            --muted: #64748b;
+            --line: #d8dee8;
+            --paper: #f6f8fb;
+            --panel: #ffffff;
+            --accent: #0f766e;
+            --accent-soft: #d9f3ef;
+            --blue: #2563eb;
+            --orange: #ea580c;
+            --red: #dc2626;
+            --code: #101827;
+        }
 
-        /* Sidebar Styling */
-        .sidebar-link {
-            @apply flex items-center gap-3 text-slate-400 hover:text-white hover:bg-slate-800 px-4 py-3 rounded-lg transition-all duration-200;
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            margin: 0;
+            background: var(--paper);
+            color: var(--ink);
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            line-height: 1.6;
         }
-        .sidebar-link.active {
-            @apply bg-blue-600/20 text-blue-400 border border-blue-600/30;
+
+        a { color: inherit; text-decoration: none; }
+        code, pre, input, textarea, select { font-family: "Cascadia Code", "Fira Code", Consolas, monospace; }
+        .shell { display: grid; grid-template-columns: 280px minmax(0, 1fr); min-height: 100vh; }
+        .sidebar {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            padding: 28px 22px;
+            background: #101827;
+            color: #eef4ff;
+            overflow-y: auto;
         }
-        aside::-webkit-scrollbar { width: 4px; }
-        aside::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+        .brand-mark {
+            width: 42px;
+            height: 42px;
+            display: grid;
+            place-items: center;
+            border-radius: 8px;
+            background: var(--accent);
+            font-weight: 900;
+        }
+        .brand-title { font-size: 18px; font-weight: 800; letter-spacing: .2px; }
+        .brand-subtitle { color: #94a3b8; font-size: 11px; text-transform: uppercase; letter-spacing: .12em; }
+        .nav-label { color: #718096; font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; margin: 24px 10px 8px; }
+        .nav-link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin: 5px 0;
+            padding: 10px 12px;
+            border-radius: 8px;
+            color: #cbd5e1;
+            font-size: 14px;
+        }
+        .nav-link:hover { background: #1f2a3a; color: #ffffff; }
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            min-height: 24px;
+            padding: 3px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: .04em;
+            color: #fff;
+        }
+        .get { background: var(--accent); }
+        .post { background: var(--blue); }
+        .main { padding: 34px; }
+        .hero {
+            max-width: 1180px;
+            margin: 0 auto 18px;
+            padding: 34px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: var(--panel);
+        }
+        h1, h2, h3 { line-height: 1.2; margin: 0; }
+        h1 { font-size: clamp(32px, 5vw, 56px); letter-spacing: 0; }
+        h2 { font-size: 26px; margin-bottom: 14px; }
+        h3 { font-size: 18px; }
+        p { margin: 0; color: var(--muted); }
+        .hero p { max-width: 760px; margin-top: 14px; font-size: 17px; }
+        .config {
+            max-width: 1180px;
+            margin: 0 auto 22px;
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+            padding: 16px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: #eaf1f7;
+        }
+        label { display: block; margin-bottom: 6px; color: #475569; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
+        input, textarea, select {
+            width: 100%;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            background: #fff;
+            color: var(--ink);
+            padding: 10px 12px;
+            font-size: 13px;
+            outline: none;
+        }
+        textarea { min-height: 170px; resize: vertical; line-height: 1.5; }
+        input:focus, textarea:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(15, 118, 110, .14); }
+        section {
+            max-width: 1180px;
+            margin: 0 auto 22px;
+            scroll-margin-top: 20px;
+        }
+        .section-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin: 34px 0 14px;
+        }
+        .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+        .card {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: var(--panel);
+            overflow: hidden;
+        }
+        .card-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 18px;
+            border-bottom: 1px solid var(--line);
+        }
+        .endpoint { margin-top: 7px; color: #334155; font-size: 13px; word-break: break-all; }
+        .card-body { padding: 18px; }
+        .meta {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            margin: 14px 0;
+        }
+        .full { grid-column: 1 / -1; }
+        .hint {
+            padding: 12px;
+            border: 1px solid #c9e6e1;
+            border-radius: 8px;
+            background: var(--accent-soft);
+            color: #115e59;
+            font-size: 13px;
+        }
+        .actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 14px; }
+        button {
+            border: 0;
+            border-radius: 8px;
+            padding: 10px 14px;
+            background: var(--accent);
+            color: #fff;
+            font-weight: 800;
+            cursor: pointer;
+        }
+        button.secondary { background: #334155; }
+        button:hover { filter: brightness(.96); }
+        pre {
+            margin: 12px 0 0;
+            padding: 14px;
+            border-radius: 8px;
+            background: var(--code);
+            color: #dbeafe;
+            overflow: auto;
+            font-size: 12px;
+            line-height: 1.55;
+        }
+        .response {
+            min-height: 142px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .status-line { color: #64748b; font-size: 13px; }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            overflow: hidden;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: #fff;
+        }
+        .table th, .table td { padding: 13px 14px; border-bottom: 1px solid var(--line); text-align: left; font-size: 14px; }
+        .table th { background: #edf2f7; color: #475569; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
+        .table tr:last-child td { border-bottom: 0; }
+        .copy { background: #475569; padding: 8px 10px; font-size: 12px; }
+        .danger { color: var(--red); }
+        @media (max-width: 980px) {
+            .shell { grid-template-columns: 1fr; }
+            .sidebar { position: static; height: auto; }
+            .main { padding: 18px; }
+            .config, .grid { grid-template-columns: 1fr; }
+            .meta { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
-<body class="bg-slate-50 font-sans text-slate-900 leading-relaxed">
-
-<div class="flex flex-col md:flex-row min-h-screen">
-    <aside class="w-full md:w-80 bg-slate-900 text-white p-6 sticky top-0 h-screen flex flex-col shadow-2xl z-50">
-        <div class="mb-10 px-2 flex items-center gap-3">
-            <div class="bg-blue-600 p-2 rounded-lg">
-                <i class="fas fa-box-open text-white text-xl"></i>
-            </div>
+<body>
+<div class="shell">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-mark">QR</div>
             <div>
-                <h1 class="text-xl font-bold tracking-tight">QRBox<span class="text-blue-500">.id</span></h1>
-                <p class="text-slate-500 text-[10px] uppercase tracking-widest font-semibold">API Documentation v1.0</p>
+                <div class="brand-title">QRBox API</div>
+                <div class="brand-subtitle">Docs & Playground</div>
             </div>
         </div>
 
-        <nav class="space-y-2 flex-1">
-            <p class="text-slate-500 text-[10px] uppercase tracking-widest font-bold mb-4 px-4">Menu Utama</p>
+        <div class="nav-label">Dokumentasi</div>
+        <a class="nav-link" href="#overview">Overview</a>
+        <a class="nav-link" href="#service-types">Service Types</a>
+        <a class="nav-link" href="#device">Device</a>
+        <a class="nav-link" href="#payment">Payment</a>
+        <a class="nav-link" href="#callback">Callback</a>
 
-            <a href="#intro" class="sidebar-link active" onclick="setActive(this)">
-                <i class="fas fa-info-circle w-5"></i> Pendahuluan
-            </a>
-            <a href="#service-types" class="sidebar-link" onclick="setActive(this)">
-                <i class="fas fa-list-ul w-5"></i> Service Types
-            </a>
-
-            <p class="text-slate-500 text-[10px] uppercase tracking-widest font-bold mt-8 mb-4 px-4">Endpoint API</p>
-
-            <a href="#transaction" class="sidebar-link" onclick="setActive(this)">
-                <i class="fas fa-exchange-alt w-5"></i> Transaksi & QRIS
-            </a>
-            <a href="#payment-check" class="sidebar-link" onclick="setActive(this)">
-                <i class="fas fa-check-double w-5"></i> Status Pembayaran
-            </a>
-            <a href="#bypass" class="sidebar-link" onclick="setActive(this)">
-                <i class="fas fa-microchip w-5"></i> IoT / Hardware
-            </a>
-        </nav>
-
-        <div class="mt-auto pt-6 border-t border-slate-800 px-4">
-            <div class="flex items-center gap-3 text-slate-400 text-sm">
-                <div class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                Server Status: Online
-            </div>
-            <p class="text-slate-600 text-[10px] mt-4">&copy; 2026 QRBox Indonesia</p>
-        </div>
+        <div class="nav-label">Playground</div>
+        <a class="nav-link" href="#device-menu"><span>Device Menu</span><span class="pill get">GET</span></a>
+        <a class="nav-link" href="#update-status"><span>Update Status</span><span class="pill post">POST</span></a>
+        <a class="nav-link" href="#check-device"><span>Check Device</span><span class="pill get">GET</span></a>
+        <a class="nav-link" href="#qr-request"><span>QR Request</span><span class="pill post">POST</span></a>
+        <a class="nav-link" href="#payment-check"><span>Payment Check</span><span class="pill get">GET</span></a>
+        <a class="nav-link" href="#payment-check-2"><span>Payment Check 2</span><span class="pill get">GET</span></a>
+        <a class="nav-link" href="#payment-status-update"><span>Status Update</span><span class="pill post">POST</span></a>
+        <a class="nav-link" href="#device-price"><span>Device Price</span><span class="pill get">GET</span></a>
     </aside>
 
-    <main class="flex-1 p-6 md:p-12 max-w-5xl">
+    <main class="main">
+        <section id="overview" class="hero">
+            <h1>QRBox API Documentation</h1>
+            <p>Halaman publik satu halaman untuk membaca dokumentasi dan langsung mengetes endpoint API QRBox. Isi nilai global di bawah, termasuk lalu setiap playground akan otomatis memakai contoh URL dan payload yang sesuai.</p>
+        </section>
 
-        <section id="intro" class="mb-20">
-            <h2 class="text-4xl font-black mb-6 text-slate-800 tracking-tight">Pendahuluan</h2>
-            <p class="text-slate-600 text-lg max-w-3xl leading-relaxed">
-                Selamat datang di dokumentasi teknis QRBox.id. API ini dirancang untuk menjembatani sistem pembayaran digital (QRIS) dengan kontrol hardware IoT secara real-time.
-            </p>
-            <div class="mt-8 p-5 bg-blue-50 border-l-4 border-blue-500 text-blue-900 rounded-r-xl shadow-sm flex items-center gap-4">
-                <div class="bg-blue-500 text-white p-3 rounded-lg shadow-md">
-                    <i class="fas fa-server"></i>
+        <div class="config" aria-label="Global playground configuration">
+            <div>
+                <label for="baseUrl">Base API URL</label>
+                <div class="config-row">
+                    <input id="baseUrl" value="{{ url('/') }}" placeholder="http://localhost:8000" data-base-default="{{ url('/') }}">
+                    <button type="button" id="applyBase">Apply</button>
                 </div>
-                <div>
-                    <p class="text-xs font-bold uppercase text-blue-600 tracking-wider">Base API URL</p>
-                    <code class="text-lg">https://api.qrbox.id/api</code>
-                </div>
+                <p class="config-hint">Klik <strong>Apply</strong> untuk menerapkan Base URL ke semua card tanpa refresh.</p>
+            </div>
+        </div>
+
+        <section id="service-types">
+            <div class="section-head">
+                <h2>Service Types</h2>
+            </div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Kategori</th>
+                        <th>Value payload</th>
+                        <th>Catatan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Laundry</td>
+                        <td><code>washer</code>, <code>dryer_a</code>, <code>dryer_b</code></td>
+                        <td>Umumnya dipakai untuk QR request dan polling mesin.</td>
+                    </tr>
+                    <tr>
+                        <td>Turnstile</td>
+                        <td><code>turnstile</code></td>
+                        <td>Untuk akses gate atau perangkat sejenis.</td>
+                    </tr>
+                    <tr>
+                        <td>Dispenser</td>
+                        <td><code>dispenser_a</code>, <code>dispenser_b</code>, <code>dispenser_c</code></td>
+                        <td>Sesuaikan dengan option device.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="device">
+            <div class="section-head">
+                <h2>Device API</h2>
+            </div>
+            <div class="grid">
+                <div id="device-menu"></div>
+                <div id="update-status"></div>
+                <div id="check-device"></div>
+                <div id="device-price"></div>
             </div>
         </section>
 
-        <section id="service-types" class="mb-20">
-            <h2 class="text-2xl font-bold mb-8 flex items-center text-slate-800">
-                <span class="bg-blue-100 p-2 rounded-lg mr-4"><i class="fas fa-tags text-blue-600 text-sm"></i></span>
-                Service Types
-            </h2>
-            <div class="overflow-hidden bg-white rounded-2xl shadow-sm border border-slate-200">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-slate-50 border-b border-slate-200">
-                            <th class="p-5 font-bold text-slate-700 uppercase text-xs tracking-wider">Kategori</th>
-                            <th class="p-5 font-bold text-slate-700 uppercase text-xs tracking-wider">Slug Value (Payload)</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100">
-                        <tr class="hover:bg-slate-50 transition"><td class="p-5 font-bold text-slate-800">LAUNDRY</td><td class="p-5"><code>washer</code>, <code>dryer_a</code>, <code>dryer_b</code></td></tr>
-                        <tr class="hover:bg-slate-50 transition"><td class="p-5 font-bold text-slate-800">TURNSTILE</td><td class="p-5"><code>turnstile</code></td></tr>
-                        <tr class="hover:bg-slate-50 transition"><td class="p-5 font-bold text-slate-800">DISPENSER</td><td class="p-5"><code>dispenser_a</code>, <code>dispenser_b</code>, <code>dispenser_c</code></td></tr>
-                    </tbody>
-                </table>
+        <section id="payment">
+            <div class="section-head">
+                <h2>Payment API</h2>
+            </div>
+            <div class="grid">
+                <div id="qr-request"></div>
+                <div id="payment-check"></div>
+                <div id="payment-check-2"></div>
             </div>
         </section>
 
-        <section id="transaction" class="mb-20">
-            <h2 class="text-2xl font-bold mb-8 flex items-center text-slate-800">
-                <span class="bg-blue-100 p-2 rounded-lg mr-4"><i class="fas fa-rocket text-blue-600 text-sm"></i></span>
-                API Transaksi & QRIS
-            </h2>
-
-            <div class="mb-10 bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
-                <div class="flex items-center gap-3 mb-6">
-                    <span class="method-get text-white px-3 py-1 rounded-md text-xs font-black">GET</span>
-                    <span class="font-mono font-bold text-slate-700 tracking-tight">/device-menu/{device_code}</span>
-                </div>
-                <p class="text-slate-600 mb-6 font-medium">Mengambil daftar menu, harga, dan durasi aktif perangkat berdasarkan kode unik.</p>
-                <pre>{
-  "status": "success",
-  "service_type": "Laundry",
-  "device_name": "Main Machine Laundry",
-  "device_code": "DEV-WHNTZR",
-  "menus": [
-    { "name": "Laundry Menu 1", "type": "washer", "price": 13000, "active": true, "duration": 45 }
-  ]
-}</pre>
+        <section id="callback">
+            <div class="section-head">
+                <h2>Callback API</h2>
             </div>
-
-            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
-                <div class="flex items-center gap-3 mb-6">
-                    <span class="method-post text-white px-3 py-1 rounded-md text-xs font-black">POST</span>
-                    <span class="font-mono font-bold text-slate-700 tracking-tight">/qr-request</span>
-                </div>
-                <p class="text-slate-600 mb-8">Generate pesanan baru dan mendapatkan URL gambar QRIS.</p>
-
-                <div class="space-y-8">
-                    <div>
-                        <p class="text-[10px] font-black text-slate-400 mb-3 uppercase tracking-[0.2em]">Request Payload</p>
-                        <pre>{
-  "type": "washer",
-  "device_code": "DEV-WHNTZR"
-}</pre>
-                    </div>
-                    <div>
-                        <p class="text-[10px] font-black text-slate-400 mb-3 uppercase tracking-[0.2em]">Response</p>
-                        <pre>{
-  "status": "success",
-  "message": {
-    "order_id": "TRX-OUT-GOFUR-1768813632-696DF4408018E",
-    "device_name": "Main Machine Laundry",
-    "qr_image": "http://api.qrbox.id/storage/qrcodes/TRX-XXX.jpg",
-    "final_amount": 9000
-  }
-}</pre>
-                    </div>
-                </div>
+            <div class="grid">
+                <div id="payment-status-update"></div>
             </div>
+            <p class="hint">Endpoint callback biasanya dipanggil oleh Midtrans. Playground ini membantu simulasi payload status transaksi untuk testing lokal.</p>
         </section>
-
-        <section id="payment-check" class="mb-20">
-            <h2 class="text-2xl font-bold mb-8 flex items-center text-slate-800">
-                <span class="bg-emerald-100 p-2 rounded-lg mr-4"><i class="fas fa-check-circle text-emerald-600 text-sm"></i></span>
-                Status Pembayaran
-            </h2>
-
-            <div class="mb-8 bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
-                <div class="flex items-center gap-3 mb-4">
-                    <span class="method-get text-white px-3 py-1 rounded-md text-xs font-black uppercase">GET</span>
-                    <span class="font-mono font-bold text-slate-700">/payment-check?order_id={order_id}</span>
-                </div>
-                <p class="text-slate-600 mb-6">Endpoint utama untuk mengecek keberhasilan transaksi.</p>
-                <pre>{
-  "status": "success",
-  "message": {
-    "type": "dryer_a",
-    "order_id": "TRX-OUT-GOFUR-1768811924-696DED94C0A9E",
-    "payment_status": "success",
-    "device_status": 0,
-    "qr_code_deleted": false,
-    "description": "Pembayaran Berhasil."
-  }
-}</pre>
-            </div>
-        </section>
-
-        <section id="bypass" class="mb-20">
-            <h2 class="text-2xl font-bold mb-8 flex items-center text-slate-800">
-                <span class="bg-orange-100 p-2 rounded-lg mr-4"><i class="fas fa-microchip text-orange-600 text-sm"></i></span>
-                API IoT / Hardware (Polling)
-            </h2>
-            <div class="bg-slate-900 text-slate-300 p-8 rounded-3xl shadow-xl">
-                <div class="flex items-center gap-3 mb-8">
-                    <span class="bg-orange-500 text-white px-3 py-1 rounded-md text-xs font-black uppercase border border-orange-400">GET</span>
-                    <span class="font-mono text-white text-lg tracking-tight">/check-device?device_code={code}</span>
-                </div>
-
-                <p class="mb-10 text-slate-400">Hardware (ESP32) wajib melakukan polling setiap 3-5 detik.</p>
-
-                <div class="grid grid-cols-1 gap-8">
-                    <div>
-                        <p class="text-[10px] font-black text-emerald-500 mb-3 uppercase tracking-[0.2em] flex items-center gap-2">
-                            <span class="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
-                            Kondisi Aktif (Aktivasi)
-                        </p>
-                        <pre class="bg-slate-800 border-emerald-900/50 text-emerald-400">{
-  "status": "success",
-  "status_device": "dryer_a",
-  "source": "bypass",
-  "activation_date": "2026-01-19 16:12:46",
-  "message": "Status diterima"
-}</pre>
-                    </div>
-
-                    <div>
-                        <p class="text-[10px] font-black text-slate-500 mb-3 uppercase tracking-[0.2em] flex items-center gap-2">
-                            <span class="h-2 w-2 rounded-full bg-slate-600"></span>
-                            Kondisi Standby (Idle)
-                        </p>
-                        <pre class="bg-slate-800 border-slate-700 text-slate-400">{
-  "status": "success",
-  "status_device": "off",
-  "source": null,
-  "activation_date": null,
-  "message": "Status diterima"
-}</pre>
-                    </div>
-                </div>
-
-                <div class="mt-10 p-6 bg-orange-600/10 border-l-4 border-orange-500 rounded-r-2xl">
-                    <h4 class="text-orange-500 font-bold mb-2 flex items-center gap-2 text-sm uppercase">
-                        <i class="fas fa-exclamation-triangle"></i> Panduan Hardware
-                    </h4>
-                    <ul class="text-xs text-slate-400 space-y-2 list-none">
-                        <li>• Segera aktifkan relay jika <code>status_device</code> bukan <code>off</code>.</li>
-                        <li>• Gunakan HTTPS dengan sertifikat yang valid untuk keamanan data.</li>
-                    </ul>
-                </div>
-            </div>
-        </section>
-
     </main>
 </div>
 
+@verbatim
+<template id="playground-card-template">
+    <article class="card">
+        <div class="card-head">
+            <div>
+                <span class="pill method-pill"></span>
+                <h3 class="card-title"></h3>
+                <div class="endpoint"></div>
+            </div>
+            <button class="copy" type="button">Copy URL</button>
+        </div>
+        <div class="card-body">
+            <p class="description"></p>
+            <div class="meta"></div>
+            <div class="body-wrap">
+                <label>Request Body</label>
+                <textarea class="request-body"></textarea>
+            </div>
+            <div class="actions">
+                <button class="send" type="button">Send Request</button>
+                <button class="secondary fill" type="button">Reset Example</button>
+                <span class="status-line">Ready</span>
+            </div>
+            <label style="margin-top:16px;">Response</label>
+            <pre class="response">{}</pre>
+        </div>
+    </article>
+</template>
+@endverbatim
+
 <script>
-    // Highlight sidebar links based on scroll position
-    window.addEventListener('scroll', () => {
-        let current = "";
-        const sections = document.querySelectorAll("section");
-        const navLinks = document.querySelectorAll(".sidebar-link");
+    const cards = [
+        {
+            id: 'device-menu',
+            method: 'GET',
+            title: 'Get Device Menu',
+            endpoint: '/device-menu/{device_code}',
+            description: 'Mengambil nama device, service type, dan empat opsi menu dari device_code.',
+            fields: [
+                { key: 'device_code', label: 'Device Code', global: 'deviceCode' }
+            ],
+            body: null,
+            sampleResponse: { status: 'success', service_type: 'Laundry', device_name: 'Main Machine Laundry', device_code: 'DEV-WHNTZR', menus: [{ name: 'Laundry Menu 1', type: 'washer', price: 13000, active: true, duration: 45 }] }
+        },
+        {
+            id: 'update-status',
+            method: 'POST',
+            title: 'Update Device Status',
+            endpoint: '/devices/{device}/update-status',
+            description: 'Bypass atau matikan status perangkat menggunakan ID device Laravel.',
+            fields: [{ key: 'device', label: 'Device ID', value: '1' }],
+            body: { device_status: 'washer', bypass_note: 'Testing bypass dari API playground' },
+            sampleResponse: { status: 'success', message: 'Device DEV-WHNTZR berhasil diperbarui menjadi "washer"' }
+        },
+        {
+            id: 'check-device',
+            method: 'GET',
+            title: 'Check Device Status',
+            endpoint: '/check-device?device_code={device_code}',
+            description: 'Dipakai hardware untuk polling status aktivasi setiap beberapa detik.',
+            fields: [
+                { key: 'device_code', label: 'Device Code', global: 'deviceCode' }
+            ],
+            body: null,
+            sampleResponse: { status: 'success', status_device: 'off', source: null, activation_date: null, message: 'Status diterima' }
+        },
+        {
+            id: 'qr-request',
+            method: 'POST',
+            title: 'QR Request',
+            endpoint: '/qr-request',
+            description: 'Membuat transaksi QRIS Midtrans berdasarkan device_code dan service type.',
+            fields: [
+                { key: 'device_code', label: 'Device Code', global: 'deviceCode', bodyOnly: true }
+            ],
+            body: { type: 'washer', device_code: 'DEV-WHNTZR' },
+            sampleResponse: { status: 'success', message: { order_id: 'TRX-OUTLET-EXAMPLE', payment_status: 'pending', qr_image: 'https://domain.test/storage/app/public/qrcodes/TRX-OUTLET-EXAMPLE.jpg', original_price: 13000 } }
+        },
+        {
+            id: 'payment-check',
+            method: 'GET',
+            title: 'Payment Check',
+            endpoint: '/payment-check?order_id={order_id}',
+            description: 'Cek status pembayaran menggunakan order_id.',
+            fields: [
+                { key: 'order_id', label: 'Order ID', global: 'orderId' }
+            ],
+            body: null,
+            sampleResponse: { status: 'success', message: { type: 'washer', order_id: 'TRX-OUTLET-EXAMPLE', payment_status: 'success', description: 'Pembayaran Berhasil.' } }
+        },
+        {
+            id: 'payment-check-2',
+            method: 'GET',
+            title: 'Payment Check 2',
+            endpoint: '/payment-check-2?device_code={device_code}&service_type={service_type}',
+            description: 'Cek transaksi sukses terbaru berdasarkan device_code dan service_type.',
+            fields: [
+                { key: 'device_code', label: 'Device Code', global: 'deviceCode' },
+                { key: 'service_type', label: 'Service Type', value: 'washer' }
+            ],
+            body: null,
+            sampleResponse: { status: 'success', message: { order_id: 'TRX-OUTLET-EXAMPLE', payment_status: 'success', amount: 11700, description: 'Pembayaran Berhasil.' } }
+        },
+        {
+            id: 'payment-status-update',
+            method: 'POST',
+            title: 'Payment Status Update',
+            endpoint: '/payment-status-update',
+            description: 'Simulasi callback Midtrans untuk mengubah status internal transaksi.',
+            fields: [],
+            body: { order_id: 'TRX-OUTLET-ORDER-ID', transaction_status: 'settlement', gross_amount: '13000.00', payment_type: 'qris', settlement_time: '2026-07-14 10:00:00' },
+            sampleResponse: { status: 'success', message: 'Status updated to success' }
+        },
+        {
+            id: 'device-price',
+            method: 'GET',
+            title: 'Device Price',
+            endpoint: '/device-price/{device}/{serviceType}',
+            description: 'Mengambil harga dari pivot device_service_type berdasarkan ID device dan ID service type.',
+            fields: [
+                { key: 'device', label: 'Device ID', value: '1' },
+                { key: 'serviceType', label: 'Service Type ID', value: '1' }
+            ],
+            body: null,
+            sampleResponse: { price: 13000 }
+        }
+    ];
 
-        sections.forEach((section) => {
-            const sectionTop = section.offsetTop;
-            if (pageYOffset >= sectionTop - 100) {
-                current = section.getAttribute("id");
-            }
-        });
+    const globals = {
+        baseUrl: document.getElementById('baseUrl')
+    };
 
-        navLinks.forEach((link) => {
-            link.classList.remove("active");
-            if (link.getAttribute("href").includes(current)) {
-                link.classList.add("active");
-            }
-        });
-    });
-
-    // Manual click active state
-    function setActive(el) {
-        document.querySelectorAll('.sidebar-link').forEach(link => link.classList.remove('active'));
-        el.classList.add('active');
+    function pretty(value) {
+        return JSON.stringify(value, null, 2);
     }
-</script>
 
+    function normalizeBaseUrl() {
+        const raw = (globals.baseUrl.value || '').trim();
+        if (!raw) return window.location.origin;
+        // Buang trailing slash dulu
+        let base = raw.replace(/\/+$/, '');
+        // Kalau user ngetik /api di belakang, jangan dobel
+        base = base.replace(/\/api$/i, '');
+        return base + '/api';
+    }
+
+    function valueFor(field, root) {
+        const input = root.querySelector(`[data-field="${field.key}"]`);
+        if (input) {
+            return input.value;
+        }
+        if (field.global && globals[field.global]) {
+            return globals[field.global].value;
+        }
+        return field.value || '';
+    }
+
+    function buildUrl(card, root) {
+        let endpoint = card.endpoint;
+        card.fields.filter((field) => !field.bodyOnly).forEach((field) => {
+            endpoint = endpoint.replaceAll(`{${field.key}}`, encodeURIComponent(valueFor(field, root)));
+        });
+        card.fields.filter((field) => !field.bodyOnly).forEach((field) => {
+            endpoint = endpoint.replaceAll({}, encodeURIComponent(valueFor(field, root)));
+        });
+        const url = new URL(normalizeBaseUrl() + endpoint);
+        card.fields.filter((field) => field.queryOnly).forEach((field) => {
+            if (!url.searchParams.has(field.key)) {
+                url.searchParams.set(field.key, valueFor(field, root));
+            }
+        });
+        return url.toString();
+    }
+
+    function bodyFor(card, textarea, root) {
+        if (!card.body) {
+            return null;
+        }
+        const parsed = JSON.parse(textarea.value || '{}');
+        card.fields.filter((field) => field.bodyOnly).forEach((field) => {
+            parsed[field.key] = valueFor(field, root);
+        });
+        return parsed;
+    }
+
+    function mountCard(card) {
+        const host = document.getElementById(card.id);
+        if (!host) return;
+
+        const template = document.getElementById('playground-card-template');
+        const node = template.content.firstElementChild.cloneNode(true);
+        const pill = node.querySelector('.method-pill');
+        const bodyWrap = node.querySelector('.body-wrap');
+        const textarea = node.querySelector('.request-body');
+        const response = node.querySelector('.response');
+        const status = node.querySelector('.status-line');
+
+        pill.textContent = card.method;
+        pill.classList.add(card.method === 'GET' ? 'get' : 'post');
+        node.querySelector('.card-title').textContent = card.title;
+        node.querySelector('.endpoint').textContent = card.endpoint;
+        node.querySelector('.description').textContent = card.description;
+        response.textContent = pretty(card.sampleResponse);
+
+        const meta = node.querySelector('.meta');
+        card.fields.forEach((field) => {
+            const wrap = document.createElement('div');
+            wrap.innerHTML = `<label>${field.label}</label><input data-field="${field.key}" value="${field.global ? globals[field.global].value : field.value}">`;
+            meta.appendChild(wrap);
+        });
+
+        if (card.body) {
+            textarea.value = pretty(card.body);
+        } else {
+            bodyWrap.style.display = 'none';
+        }
+
+        node.querySelector('.copy').addEventListener('click', async () => {
+            await navigator.clipboard.writeText(buildUrl(card, node));
+            status.textContent = 'URL copied';
+        });
+
+        node.querySelector('.fill').addEventListener('click', () => {
+            if (card.body) textarea.value = pretty(card.body);
+            response.textContent = pretty(card.sampleResponse);
+            status.textContent = 'Example restored';
+        });
+
+        node.querySelector('.send').addEventListener('click', async () => {
+            const url = buildUrl(card, node);
+            status.textContent = 'Sending...';
+            response.textContent = 'Loading ' + url;
+
+            try {
+                const options = { method: card.method, headers: { Accept: 'application/json' } };
+                const payload = bodyFor(card, textarea, node);
+                if (payload) {
+                    options.headers['Content-Type'] = 'application/json';
+                    options.body = JSON.stringify(payload);
+                }
+                const res = await fetch(url, options);
+                const text = await res.text();
+                let parsed = text;
+                try { parsed = JSON.parse(text); } catch (error) {}
+                response.textContent = typeof parsed === 'string' ? parsed : pretty(parsed);
+                status.textContent = `${res.status} ${res.statusText}`;
+                status.classList.toggle('danger', !res.ok);
+            } catch (error) {
+                response.textContent = error.message;
+                status.textContent = 'Request failed';
+                status.classList.add('danger');
+            }
+        });
+
+        host.replaceWith(node);
+    }
+
+    cards.forEach(mountCard);
+</script>
 </body>
 </html>

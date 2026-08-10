@@ -98,6 +98,10 @@ return view('print');
 
 Route::get('cust-service', [CustomerServiceController::class,'index']);
 
+Route::get('api-docs', function () {
+    return view('api_docs');
+})->name('api.docs');
+
 Route::get('dashboard', function () {
 
     if (auth()->guard('admin_config')->check()) {
@@ -257,6 +261,5 @@ Route::get('/clear-config', function () {
 
 
 // });
-
 
 

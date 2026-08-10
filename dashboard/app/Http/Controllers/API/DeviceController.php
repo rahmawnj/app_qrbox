@@ -16,6 +16,8 @@ class DeviceController extends Controller
 {
     public function checkDeviceStatus(Request $request)
     {
+                $apiToken = $request->input('api_token');
+
         // Validate if the 'device_code' parameter is present in the request.
         if (!$request->has('device_code')) {
             return response()->json([
@@ -29,7 +31,12 @@ class DeviceController extends Controller
 
         // Find the device based on the provided 'device_code'.
         $device = Device::where('code', $request->device_code)->first();
-
+ if ($device->outlet->device_token !== $apiToken) {
+            return response()->json([
+                "status" => "error",
+                "message" => "Token tidak valid atau tidak diizinkan"
+            ], 401);
+        }
         // If the device is not found, return a 404 response.
         if (!$device) {
             return response()->json([

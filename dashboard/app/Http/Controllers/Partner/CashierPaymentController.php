@@ -274,7 +274,7 @@ class CashierPaymentController extends Controller
                 $ownerAndCashiers = $cashierUsers->push($ownerUser);
                 event(new NotificationEvent(
                     recipients: $ownerAndCashiers,
-                    title: '💸 Transaksi Baru di Outlet ' . $outlet->name,
+                    title: '💸 Transaksi Baru di Outlet ' . $outlet->outlet_name,
                     message: 'Transaksi sebesar Rp. ' . number_format($request->amount, 0, ',', '.') . ' telah berhasil dicatat oleh kasir ' . $request->cashier_name . ' di outlet Anda.',
                     url: route('partner.transactions.index')
                 ));

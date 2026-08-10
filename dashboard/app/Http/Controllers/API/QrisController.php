@@ -8,8 +8,6 @@ use App\Models\Device;
 use App\Models\Payment;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
-use chillerlan\QRCode\QRCode;
-use chillerlan\QRCode\QROptions;
 use App\Events\NotificationEvent;
 use App\Models\DeviceTransaction;
 use Illuminate\Support\Facades\DB;
@@ -28,15 +26,15 @@ class QrisController extends Controller
         $apiToken = $request->input('api_token');
 
         $device = Device::where('code', $deviceCode)->first();
+        if (!$device) {
+            return response()->json(["status" => "error", "message" => "Device tidak ditemukan"], 404);
+        }
+
         if ($device->outlet->device_token !== $apiToken) {
             return response()->json([
                 "status" => "error",
                 "message" => "Token tidak valid atau tidak diizinkan"
             ], 401);
-        }
-
-        if (!$device) {
-            return response()->json(["status" => "error", "message" => "Device tidak ditemukan"], 404);
         }
 
         $originalPrice = 0;
@@ -154,7 +152,8 @@ class QrisController extends Controller
         ]);
 
         $amountFormatted = 'Rp ' . number_format($originalPrice, 0, ',', '.');
-        $filePath = $this->generateQRCode($qrString, $orderId, $outlet->name, $amountFormatted);
+        // dd($outlet);
+        $filePath = $this->generateQRCode($qrString, $orderId, $outlet->outlet_name, $amountFormatted);
 
         $qrisDetail->update([
             'qr_code_image' => basename($filePath)
@@ -170,7 +169,7 @@ class QrisController extends Controller
                 "device_code"    => $deviceCode,
                 "transaction_id" => $transaction->id,
                 "payment_status" => "pending",
-                "qr_image"       => url('storage/app/public/qrcodes/' . basename($filePath)),
+                "qr_image"       => url('storage/qrcodes/' . basename($filePath)),
                 "expires_at"     => $midtransResult['expiry_time'] ?? null,
                 "original_price" => $originalPrice,
                 "final_amount"   => $finalAmountToPay,
@@ -188,78 +187,121 @@ class QrisController extends Controller
     }
     }
 
-    function generateQRCode($data, $orderId, $textAbove = '0', $textBelow = 'Merchant Name')
-    {
-        $options = new QROptions([
-            'version'          => QRCode::VERSION_AUTO,
-            'outputType'       => QRCode::OUTPUT_IMAGE_JPG,
-            'eccLevel'         => QRCode::ECC_L,
-            'scale'            => 4,
-            'imageBase64'      => false,
-            'bgColor'          => [255, 255, 255, 127],
-            'imageTransparent' => true,
-        ]);
+   function generateQRCode($qrImageUrl, $orderId, $textAbove = '0', $textBelow = 'Merchant Name')
+{
+    // Dapatkan URL background dan konversikan menjadi path file lokal
+    $backgroundImageUrl = asset('assets/img/qristempl.jpg');
+    $bgFilePath = public_path(parse_url($backgroundImageUrl, PHP_URL_PATH));
+    $bgGdImage = imagecreatefromjpeg($bgFilePath);
 
-        // Dapatkan URL background dan konversikan menjadi path file lokal
-        $backgroundImageUrl = asset('assets/img/qristempl.jpg');
-        $bgFilePath = public_path(parse_url($backgroundImageUrl, PHP_URL_PATH));
-        $bgGdImage = imagecreatefromjpeg($bgFilePath);
-
-        // Buat QR Code dan render ke dalam image binary
-        $qrCode = new QRCode($options);
-        $qrImage = $qrCode->render($data);
-        $qrGdImage = imagecreatefromstring($qrImage);
-
-        // Mendapatkan dimensi gambar QR dan background
-        $qrWidth  = imagesx($qrGdImage);
-        $qrHeight = imagesy($qrGdImage);
-        $bgWidth  = imagesx($bgGdImage);
-        $bgHeight = imagesy($bgGdImage);
-
-        // Menghitung posisi agar QR Code berada di tengah background
-        $dstX = ($bgWidth - $qrWidth) / 2;
-        $dstY = ($bgHeight - $qrHeight) / 2;
-
-        // Menyalin QR Code ke background, sedikit diturunkan secara vertikal (offset +20)
-        imagecopy($bgGdImage, $qrGdImage, (int)$dstX, (int)($dstY + 20), 0, 0, $qrWidth, $qrHeight);
-
-        // Mengatur ukuran font untuk teks (nilai 1 sampai 5)
-        $fontSize = 5;
-
-        // Menghitung posisi untuk teks di atas (textAbove)
-        $textAboveWidth = imagefontwidth($fontSize) * strlen($textAbove);
-        $textAboveX = ($bgWidth - $textAboveWidth) / 2;
-        // Posisi teks atas: sesuaikan offset Y jika perlu
-        $textAboveY = $dstY - 30;
-
-        // Menghitung posisi untuk teks di bawah (textBelow)
-        $textBelowWidth = imagefontwidth($fontSize) * strlen($textBelow);
-        $textBelowX = ($bgWidth - $textBelowWidth) / 2;
-        // Ubah offset Y untuk teks bawah agar tidak tertutup, misal tambahkan nilai offset yang lebih besar
-        $textBelowY = $dstY + $qrHeight + 20;
-
-        // Pilih warna teks, misalnya hitam
-        $textColor = imagecolorallocate($bgGdImage, 0, 0, 0);
-
-        // Menuliskan teks pada gambar
-        imagestring($bgGdImage, $fontSize, (int)$textAboveX, (int)$textAboveY + 45, $textAbove, $textColor);
-        imagestring($bgGdImage, $fontSize, (int)$textBelowX, (int)$textBelowY, $textBelow, $textColor);
-
-        // Simpan gambar akhir ke folder storage
-        $folder = storage_path('app/public/qrcodes/');
-        if (!file_exists($folder)) {
-            mkdir($folder, 0777, true);
-        }
-        $filePath = $folder . $orderId . '.jpg';
-        imagejpeg($bgGdImage, $filePath);
-
-        imagedestroy($qrGdImage);
-        imagedestroy($bgGdImage);
-
-        return $filePath;
+    $qrResponse = Http::timeout(15)->get($qrImageUrl);
+    if (!$qrResponse->successful()) {
+        $qrResponse = Http::withBasicAuth(env('MIDTRANS_SERVER_KEY'), '')
+            ->timeout(15)
+            ->get($qrImageUrl);
     }
 
-   public function checkPaymentStatus(Request $request)
+    if (!$qrResponse->successful()) {
+        throw new \Exception("Gagal mengambil gambar QR dari Midtrans: " . $qrResponse->body());
+    }
+
+    $qrGdImage = imagecreatefromstring($qrResponse->body());
+    if (!$qrGdImage) {
+        throw new \Exception("Gambar QR dari Midtrans tidak valid.");
+    }
+
+    // Mendapatkan dimensi gambar QR dan background
+    $qrWidth  = imagesx($qrGdImage);
+    $qrHeight = imagesy($qrGdImage);
+    $bgWidth  = imagesx($bgGdImage);
+    $bgHeight = imagesy($bgGdImage);
+
+    $targetQrSize = min((int)($bgWidth * 0.88), (int)($bgHeight * 0.80));
+    $resizedQrImage = imagecreatetruecolor($targetQrSize, $targetQrSize);
+    $white = imagecolorallocate($resizedQrImage, 255, 255, 255);
+    imagefill($resizedQrImage, 0, 0, $white);
+    imagecopyresampled(
+        $resizedQrImage,
+        $qrGdImage,
+        0,
+        0,
+        0,
+        0,
+        $targetQrSize,
+        $targetQrSize,
+        $qrWidth,
+        $qrHeight
+    );
+
+    // Menghitung posisi agar QR Code berada di tengah background
+    $dstX = ($bgWidth - $targetQrSize) / 2;
+    $dstY = ($bgHeight - $targetQrSize) / 2;
+
+    // Menyalin QR Code ke background, sedikit diturunkan secara vertikal (offset +20)
+    imagecopy($bgGdImage, $resizedQrImage, (int)$dstX, (int)($dstY + 20), 0, 0, $targetQrSize, $targetQrSize);
+
+    // Mengatur ukuran font untuk teks (nilai 1 sampai 5)
+    $fontSize = 5;
+
+    // Menghitung posisi untuk teks di atas (textAbove)
+    $textAboveWidth = imagefontwidth($fontSize) * strlen($textAbove);
+    $textAboveX = ($bgWidth - $textAboveWidth) / 2;
+    $textAboveY = $dstY - 30;
+
+    // Menghitung posisi untuk teks di bawah (textBelow)
+    $textBelowWidth = imagefontwidth($fontSize) * strlen($textBelow);
+    $textBelowX = ($bgWidth - $textBelowWidth) / 2;
+    $textBelowY = $dstY + $targetQrSize + 20;
+
+    // Pilih warna teks, misalnya hitam
+    $textColor = imagecolorallocate($bgGdImage, 0, 0, 0);
+
+    // Menuliskan teks pada gambar
+    imagestring($bgGdImage, $fontSize, (int)$textAboveX, (int)$textAboveY + 45, $textAbove, $textColor);
+    imagestring($bgGdImage, $fontSize, (int)$textBelowX, (int)$textBelowY, $textBelow, $textColor);
+
+    // ==========================================
+    // PROSES RESIZE KE LEBAR 320 PIKSEL
+    // ==========================================
+    $finalWidth = 320;
+    // Hitung tinggi proporsional agar gambar tidak gepeng/terdistorsi
+    $finalHeight = (int)(($finalWidth / $bgWidth) * $bgHeight); 
+    
+    // Buat kanvas baru berukuran 320 x tinggi proporsional
+    $outputImage = imagecreatetruecolor($finalWidth, $finalHeight);
+    
+    // Copy dan perkecil gambar gabungan tadi ke kanvas baru
+    imagecopyresampled(
+        $outputImage,
+        $bgGdImage,
+        0, 0, 0, 0,
+        $finalWidth,
+        $finalHeight,
+        $bgWidth,
+        $bgHeight
+    );
+    // ==========================================
+
+    // Simpan gambar akhir (yang sudah 320px) ke folder storage
+    $folder = storage_path('app/public/qrcodes/');
+    if (!file_exists($folder)) {
+        mkdir($folder, 0777, true);
+    }
+    $filePath = $folder . $orderId . '.jpg';
+    
+    // Simpan menggunakan resource $outputImage dengan kualitas tinggi (95)
+    imagejpeg($outputImage, $filePath, 95);
+
+    // Bersihkan memori RAM
+    imagedestroy($qrGdImage);
+    imagedestroy($resizedQrImage);
+    imagedestroy($bgGdImage);
+    imagedestroy($outputImage);
+
+    return $filePath;
+}
+
+  public function checkPaymentStatus(Request $request)
 {
     $apiToken = $request->query('api_token');
     $orderId = $request->query('order_id');
@@ -271,75 +313,85 @@ class QrisController extends Controller
         ], 400);
     }
 
-
     try {
+        // 1. Cari transaksi terlebih dahulu
         $transaction = Transaction::where('order_id', $orderId)
             ->with(['deviceTransactions'])
             ->where('created_at', '>=', now()->subHour())
             ->first();
-            $deviceTransaction = $transaction->deviceTransactions->first();
 
-            $device = Device::where('code', $deviceTransaction->device_code)->first();
-
-            if ($device->outlet->device_token !== $apiToken) {
-            return response()->json([
-                "status" => "error",
-                "message" => "Token tidak valid atau tidak diizinkan"
-            ], 401);
-        }
-        if ($transaction) {
-            $transactionStatus = $transaction->status;
-            $qrCodeImage = $transaction->qr_code_image;
-
-            if ($transactionStatus === 'success') {
-                $deviceStatus = null;
-
-                if ($qrCodeImage) {
-                    Log::info("QR Code for order ID {$orderId} would be deleted here.");
-                }
-
-
-                if ($deviceTransaction) {
-                    $deviceStatus = $deviceTransaction->status;
-                    $deviceTransaction->update([
-                        'status' => false,
-                        'bypass_activation'  => now()
-                    ]);
-                    Log::info("DeviceTransaction ID {$deviceTransaction->id} for Transaction ID {$transaction->id} updated to status: false.");
-                }
-
-                return response()->json([
-                    'status'  => 'success',
-                    'message' => [
-                        'type' => $deviceTransaction->service_type,
-                        'order_id'        => $orderId,
-                        'payment_status'  => $transactionStatus,
-                        'device_status'   => $deviceStatus,
-                        'qr_code_deleted' => (bool)$qrCodeImage,
-                        'description'     => 'Pembayaran Berhasil.'
-                    ]
-                ]);
-            } else {
-                return response()->json([
-                    'status'  => 'success',
-                    'message' => [
-                        'type' => $deviceTransaction->service_type,
-                        'order_id'        => $orderId,
-                        'payment_status'  => $transactionStatus,
-                        'qr_code_deleted' => false,
-                        'description'     => 'Pembayaran tidak berhasil.'
-                    ]
-                ]);
-            }
-        } else {
+        // 2. Jika transaksi TIDAK ditemukan, langsung respon 'Order not found'
+        if (!$transaction) {
             return response()->json([
                 'status'  => 'error',
                 'message' => [
                     'order_id'    => $orderId,
                     'description' => 'Order not found.'
                 ]
+            ], 404); // Menggunakan status 404 lebih tepat secara REST API
+        }
+
+        // 3. Ambil device transaction (jika ada)
+        $deviceTransaction = $transaction->deviceTransactions->first();
+
+        // 4. Validasi Token Keamanan
+        // Pastikan $deviceTransaction ada sebelum mengambil propertinya
+        if ($deviceTransaction) {
+            $device = Device::where('code', $deviceTransaction->device_code)->first();
+            
+            if (!$device || $device->outlet->device_token !== $apiToken) {
+                return response()->json([
+                    "status" => "error",
+                    "message" => "Token tidak valid atau tidak diizinkan"
+                ], 401);
+            }
+        }
+
+        // 5. Cek Status Pembayaran
+        $transactionStatus = $transaction->status;
+        $qrCodeImage = $transaction->qr_code_image;
+
+        if ($transactionStatus === 'success') {
+            $deviceStatus = null;
+
+            if ($qrCodeImage) {
+                Log::info("QR Code for order ID {$orderId} would be deleted here.");
+            }
+
+            if ($deviceTransaction) {
+                $deviceStatus = $deviceTransaction->status;
+                $deviceTransaction->update([
+                    'status' => false,
+                    'bypass_activation'  => now()
+                ]);
+                Log::info("DeviceTransaction ID {$deviceTransaction->id} for Transaction ID {$transaction->id} updated to status: false.");
+            }
+
+            return response()->json([
+                'status'  => 'success',
+                'message' => [
+                    'type'            => $deviceTransaction ? $deviceTransaction->service_type : null,
+                    'order_id'        => $orderId,
+                    'payment_status'  => $transactionStatus,
+                    'device_status'   => $deviceStatus,
+                    'qr_code_deleted' => (bool)$qrCodeImage,
+                    'description'     => 'Pembayaran Berhasil.'
+                ]
+            ]);
+        } else {
+            // Ini untuk status 'pending', 'expired', atau 'failed'
+            return response()->json([
+                'status'  => 'success',
+                'message' => [
+                    'type'            => $deviceTransaction ? $deviceTransaction->service_type : null,
+                    'order_id'        => $orderId,
+                    'payment_status'  => $transactionStatus,
+                    'qr_code_deleted' => false,
+                    'description'     => 'Pembayaran tidak berhasil atau masih pending.'
+                ]
             ]);
         }
+
     } catch (\Exception $e) {
         Log::error('Error checking payment status: ' . $e->getMessage(), [
             'order_id' => $orderId ?? 'N/A',
@@ -572,7 +624,7 @@ private function sendSuccessNotifications($transaction, $amountPaid)
 
     event(new NotificationEvent(
         recipients: $recipients,
-        title: '💸 Pembayaran Berhasil',
+        title: 'ðŸ’¸ Pembayaran Berhasil',
         message: "Transaksi ID {$transaction->order_id} sebesar Rp{$formattedAmount} telah masuk ke saldo.",
         url: route('partner.qris.history'),
     ));
@@ -581,7 +633,7 @@ private function sendSuccessNotifications($transaction, $amountPaid)
     if ($admins->isNotEmpty()) {
         event(new NotificationEvent(
             recipients: $admins,
-            title: '✅ Transaksi Berhasil',
+            title: 'âœ… Transaksi Berhasil',
             message: "Transaksi ID **{$transaction->order_id}** telah selesai.",
             url: route('admin.qris.history', ['transaction' => $transaction->id]),
         ));

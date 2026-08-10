@@ -10,12 +10,14 @@ use App\Models\DeviceTransaction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
-use App\Models\BypassRecord; // Pastikan model BypassRecord di-import di sini
+use App\Models\BypassRecord;
 
 class DeviceController extends Controller
 {
     public function checkDeviceStatus(Request $request)
     {
+                $apiToken = $request->input('api_token');
+
         // Validate if the 'device_code' parameter is present in the request.
         if (!$request->has('device_code')) {
             return response()->json([
@@ -29,7 +31,12 @@ class DeviceController extends Controller
 
         // Find the device based on the provided 'device_code'.
         $device = Device::where('code', $request->device_code)->first();
-
+ if ($device->outlet->device_token !== $apiToken) {
+            return response()->json([
+                "status" => "error",
+                "message" => "Token tidak valid atau tidak diizinkan"
+            ], 401);
+        }
         // If the device is not found, return a 404 response.
         if (!$device) {
             return response()->json([
@@ -191,18 +198,11 @@ public function toggleStatus(Request $request, Device $device)
     }
 
 
-    public function getDeviceMenu(Request $request, $device_code)
+    public function getDeviceMenu($device_code)
     {
         try {
-$apiToken = $request->query('api_token');
+            // Cari device berdasarkan device_code
             $device = Device::where('code', $device_code)->first();
-
-            if (!$apiToken || $device->outlet->device_token !== $apiToken) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Unauthorized: Token tidak valid'
-            ], 401);
-        }
 
             if (!$device) {
                 return response()->json([
