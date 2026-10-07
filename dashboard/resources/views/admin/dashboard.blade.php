@@ -9,6 +9,10 @@
         .select2-container--default .select2-selection--multiple {
             border-color: #348fe2 !important;
         }
+
+        .filter-panel-body {
+            background-color: #fff !important;
+        }
     </style>
 @endpush
 
@@ -23,7 +27,7 @@
         <div class="panel-heading">
             <h4 class="panel-title"><i class="fa fa-filter me-2"></i>Filter Data</h4>
         </div>
-        <div class="panel-body bg-light">
+        <div class="panel-body filter-panel-body">
             <form action="" method="GET" id="filterForm">
                 <div class="d-flex flex-wrap gap-4">
                     <div class="flex-fill" style="min-width:280px;">
@@ -41,7 +45,7 @@
                         </label>
                         @if(Auth::guard('admin_config')->check())
                             <select name="owner_ids[]" class="form-control multiple-select2 border-primary" multiple>
-                                @foreach(App\Models\Owner::all() as $owner)
+                                @foreach(AppModelsOwner::all() as $owner)
                                     <option value="{{ $owner->id }}" {{ is_array(request('owner_ids')) && in_array($owner->id, request('owner_ids')) ? 'selected' : '' }}>
                                         {{ $owner->brand_name }} ({{ $owner->code }})
                                     </option>
