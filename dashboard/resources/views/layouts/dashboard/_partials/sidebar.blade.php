@@ -1,6 +1,6 @@
 <div id="sidebar" class="app-sidebar" style="background-color: rgb(227, 243, 255)">
     <!-- BEGIN scrollbar -->
-    <div class="app-sidebar-content" data-scrollbar="true" data-height="100%">
+    <div class="app-sidebar-content" data-scrollbar="true" data-height="100%" style="padding-top: 12px;">
         <!-- BEGIN menu -->
         <div class="menu">
             <div class="menu-profile">
