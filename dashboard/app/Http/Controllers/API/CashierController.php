@@ -22,19 +22,28 @@ class CashierController extends Controller
         $serviceType = ServiceType::findOrFail($serviceTypeId);
 
 
-        $pivot = $device->serviceTypes()->where('service_type_id', $serviceTypeId)->first();
-         Log::info('Fetching price for device', [
-            'device_id' => $deviceId,
-            'service_type_id' => $serviceTypeId,
-            'price' => $pivot->pivot->price
-        ]);
+        $pivot = $device->serviceTypes()
+            ->where('service_type_id', $serviceTypeId)
+            ->first();
 
         if (!$pivot) {
-            return response()->json(['message' => 'Harga tidak ditemukan'], 404);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Harga tidak ditemukan untuk device dan service type tersebut.',
+            ], 404);
         }
 
+        Log::info('Fetching price for device', [
+            'device_id' => $deviceId,
+            'service_type_id' => $serviceTypeId,
+            'price' => $pivot->pivot->price,
+        ]);
+
         return response()->json([
-            'price' => $pivot->pivot->price
+            'status' => 'success',
+            'device_id' => $deviceId,
+            'service_type_id' => $serviceTypeId,
+            'price' => $pivot->pivot->price,
         ]);
     }
 
