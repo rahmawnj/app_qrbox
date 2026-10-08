@@ -30,7 +30,7 @@ class QrisController extends Controller
             return response()->json(["status" => "error", "message" => "Device tidak ditemukan"], 404);
         }
 
-        if ($device->outlet->device_token !== $apiToken) {
+        if (!$device->outlet || $device->outlet->device_token !== $apiToken) {
             return response()->json([
                 "status" => "error",
                 "message" => "Token tidak valid atau tidak diizinkan"
@@ -64,7 +64,7 @@ class QrisController extends Controller
         }
 
         // 4. Perhitungan Pajak/Fee (User bayar harga NET setelah dipotong fee)
-        $feePercentage = $owner->service_fee_percentage ?? 0.1;
+        $feePercentage = $owner->service_fee_percentage ?? 0;
         $feeAmount = $originalPrice * $feePercentage;
         $finalAmountToPay = $originalPrice - $feeAmount; // Nilai yang harus dibayar user ke Xendit
 
@@ -115,7 +115,7 @@ class QrisController extends Controller
             "customer_details" => [
                 "owner_name" => $owner->user->name,
                 "brand_name" => $owner->brand_name,
-                "outlet_name"      => $device->outlet,
+                "outlet_name"      => $outlet->outlet_name,
                 "email"      => $owner->user->email,
             ],
             "qris" => [
@@ -339,7 +339,7 @@ class QrisController extends Controller
         if ($deviceTransaction) {
             $device = Device::where('code', $deviceTransaction->device_code)->first();
             
-            if (!$device || $device->outlet->device_token !== $apiToken) {
+            if (!$device || !$device->outlet || $device->outlet->device_token !== $apiToken) {
                 return response()->json([
                     "status" => "error",
                     "message" => "Token tidak valid atau tidak diizinkan"
@@ -431,7 +431,7 @@ class QrisController extends Controller
             'message' => 'device code is not registered'
         ], 400);
     }
-     if ($device->outlet->device_token !== $apiToken) {
+     if (!$device->outlet || $device->outlet->device_token !== $apiToken) {
             return response()->json([
                 "status" => "error",
                 "message" => "Token tidak valid atau tidak diizinkan"
@@ -550,6 +550,7 @@ public function updateTransactionStatus(Request $request)
 
         // Cegah proses ulang jika status sudah sukses
         if ($transaction->status === 'success') {
+            DB::rollBack();
             return response()->json(['status' => 'success', 'message' => 'Already processed.']);
         }
 
@@ -567,8 +568,10 @@ public function updateTransactionStatus(Request $request)
                 Log::info("Balance Updated for Owner {$owner->id}. Added: {$transaction->amount}");
             }
             $selfServiceTransaction = $transaction->selfServiceTransaction;
+            if (!$selfServiceTransaction) {
+                throw new \Exception("Self-service transaction untuk order '$orderId' tidak ditemukan.");
+            }
 
-            // dd($selfServiceTransaction);
             Payment::updateOrCreate(
                 ['transaction_id' => $transaction->id],
                 [
