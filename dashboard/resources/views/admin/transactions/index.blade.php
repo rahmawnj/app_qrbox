@@ -420,12 +420,14 @@
                         <tr>
                             <th width="1%">#</th>
                             <th>ID Pesanan</th>
+                            <th>Device Code</th>
                             <th>Tipe</th>
                             <th>Owner & Outlet</th>
                             <th>Jumlah (Net)</th>
                             <th>Fee</th>
                             <th>Status</th>
                             <th>Tanggal</th>
+                            <th width="1%">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -433,6 +435,18 @@
                             <tr>
                                 <td>{{ $transactions->firstItem() + $index }}</td>
                                 <td>{{ $transaction->order_id ?? 'N/A' }}</td>
+                                <td>
+                                    @php
+                                        $deviceCodes = $transaction->deviceTransactions->pluck('device_code')->filter()->unique()->values();
+                                    @endphp
+                                    @if ($deviceCodes->isNotEmpty())
+                                        @foreach ($deviceCodes as $deviceCode)
+                                            <span class="label label-default me-1">{{ $deviceCode }}</span>
+                                        @endforeach
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
+                                </td>
                                 <td>
                                     <span class="badge {{ $transaction->type == 'payment' ? 'bg-success' : 'bg-danger' }}">
                                         {{ strtoupper($transaction->type) }}
@@ -455,14 +469,19 @@
                                     </span>
                                 </td>
                                 <td>{{ $transaction->created_at->format('d/m/Y H:i') }}</td>
+                                <td class="text-nowrap">
+                                    <a href="{{ route('admin.transactions.show', $transaction) }}" class="btn btn-info btn-xs" title="Detail">
+                                        <i class="fa fa-search"></i>
+                                    </a>
+                                </td>
                             </tr>
                         @empty
-                            <tr><td colspan="8" class="text-center py-4">Data tidak ditemukan</td></tr>
+                            <tr><td colspan="9" class="text-center py-4">Data tidak ditemukan</td></tr>
                         @endforelse
                     </tbody>
                     <tfoot class="bg-light fw-bold" style="border-top: 2px solid #ccc;">
                         <tr>
-                            <td colspan="4" class="text-end text-uppercase">Total Halaman Ini (Status Success Only):</td>
+                            <td colspan="5" class="text-end text-uppercase">Total Halaman Ini (Status Success Only):</td>
                             <td colspan="4">
                                 <span class="text-success me-3">Pemasukan: Rp {{ number_format($pageIncome, 0, ',', '.') }}</span>
                                 <span class="text-danger">Penarikan: Rp {{ number_format($pageWithdrawal, 0, ',', '.') }}</span>
