@@ -82,9 +82,9 @@
                                 <td class="field">Masa Berlaku Kontrak</td>
                                 <td>
                                     @if($owner->contract_start)
-                                        <span class="text-success">{{ CarbonCarbon::parse($owner->contract_start)->translatedFormat('d M Y') }}</span>
+                                        <span class="text-success">{{ \Carbon\Carbon::parse($owner->contract_start)->translatedFormat('d M Y') }}</span>
                                         <span class="text-muted m-l-5 m-r-5">s/d</span>
-                                        <span class="text-danger">{{ CarbonCarbon::parse($owner->contract_end)->translatedFormat('d M Y') }}</span>
+                                        <span class="text-danger">{{ \Carbon\Carbon::parse($owner->contract_end)->translatedFormat('d M Y') }}</span>
                                     @else
                                         <span class="text-muted">-</span>
                                     @endif
