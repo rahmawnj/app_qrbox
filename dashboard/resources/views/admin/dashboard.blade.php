@@ -45,7 +45,7 @@
                         </label>
                         @if(Auth::guard('admin_config')->check())
                             <select name="owner_ids[]" class="form-control multiple-select2 border-primary" multiple>
-                                @foreach(App\\Models\\Owner::all() as $owner)
+                                @foreach(App\Models\Owner::all() as $owner)
                                     <option value="{{ $owner->id }}" {{ is_array(request('owner_ids')) && in_array($owner->id, request('owner_ids')) ? 'selected' : '' }}>
                                         {{ $owner->brand_name }} ({{ $owner->code }})
                                     </option>
