@@ -234,7 +234,10 @@
                 </div>
             </div>
 
-            @if ($transaction->qrisTransaction)
+            @php
+                $qrisDetail = $transaction->payments->map(fn($payment) => $payment->qrisTransaction)->filter()->first();
+            @endphp
+            @if ($qrisDetail)
                 <div class="panel panel-inverse mb-4">
                     <div class="panel-heading">
                         <h4 class="panel-title"><i class="fa fa-qrcode me-2"></i>QRIS</h4>
@@ -244,13 +247,13 @@
                             <tbody>
                                 <tr>
                                     <td class="field">QR ID</td>
-                                    <td>#{{ $transaction->qrisTransaction->id }}</td>
+                                    <td>#{{ $qrisDetail->id }}</td>
                                 </tr>
                                 <tr>
                                     <td class="field">Payment URL</td>
                                     <td>
                                         @if ($transaction->qrisTransaction->payment_url)
-                                            <a href="{{ $transaction->qrisTransaction->payment_url }}" target="_blank" rel="noopener">
+                                            <a href="{{ $qrisDetail->payment_url }}" target="_blank" rel="noopener">
                                                 Buka Payment URL
                                             </a>
                                         @else
