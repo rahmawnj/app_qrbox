@@ -32,7 +32,7 @@
                     <thead>
                         <tr>
                             <th width="1">#</th>
-                            <th>Brand / Outlet</th>
+                            <th>Outlet / Brand & Owner</th>
                             <th>Device Info</th>
                             <th>Service Type Name</th>
                             <th>Bypass Status</th>
@@ -45,11 +45,31 @@
                                 <td>{{ $loop->iteration }}</td>
                                 <td>
                                     <div style="display: flex; align-items: center; gap: 10px;">
-                                        <img src="{{ asset($device->outlet->owner->brand_logo ?? 'assets/img/default-user.png') }}"
+                                        <img src="{{ asset($device->outlet?->owner?->brand_logo ?? 'assets/img/default-user.png') }}"
                                              style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%;">
                                         <div>
-                                            <div class="font-weight-bold">{{ $device->outlet->owner->brand_name ?? '-' }}</div>
-                                            <div class="small text-muted">{{ $device->outlet->outlet_name ?? '-' }}</div>
+                                            @if($device->outlet)
+                                                <a href="{{ route('admin.outlets.show', $device->outlet) }}"
+                                                   class="font-weight-bold text-primary d-block text-decoration-none"
+                                                   title="Lihat detail outlet">
+                                                    {{ $device->outlet->outlet_name ?? 'Outlet' }}
+                                                </a>
+
+                                                @if($device->outlet->owner)
+                                                    <a href="{{ route('admin.owners.show', $device->outlet->owner) }}"
+                                                       class="small text-muted d-block text-decoration-none"
+                                                       title="Lihat detail brand & owner">
+                                                        <i class="fa fa-tag mr-1"></i>
+                                                        {{ $device->outlet->owner->brand_name ?? 'Brand' }}
+                                                        <span class="ml-1">• Owner</span>
+                                                    </a>
+                                                @else
+                                                    <div class="small text-muted">Owner belum terhubung</div>
+                                                @endif
+                                            @else
+                                                <div class="font-weight-bold text-muted">Outlet belum terhubung</div>
+                                                <div class="small text-muted">Brand & Owner belum tersedia</div>
+                                            @endif
                                         </div>
                                     </div>
                                 </td>
