@@ -227,6 +227,7 @@ Route::get('/clear-config', function () {
         // Route::get('payments/qris', [AdminPaymentController::class, 'qris_history'])->name('qris.history');
 
         Route::get('transactions/all', [AdminTransactionController::class, 'index'])->name('transactions.index');
+        Route::get('transactions/{transaction}', [AdminTransactionController::class, 'show'])->name('transactions.show');
         Route::get('transactions/self-service/member', [AdminTransactionController::class, 'self_service_member'])->name('transactions.self-service.member');
         Route::get('transactions/self-service/non-member', [AdminTransactionController::class, 'self_service_non_member'])->name('transactions.self-service.non-member');
         Route::get('transactions/drop-off/member', [AdminTransactionController::class, 'drop_off_member'])->name('transactions.drop-off.member');
