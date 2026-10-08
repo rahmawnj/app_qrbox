@@ -68,21 +68,19 @@
                     </span>
                 </td>
                 <td>
-                    <div class="btn-group">
-                        <a href="{{ route('admin.outlets.show', $outlet) }}" class="btn btn-info btn-sm text-white" title="Detail">
-                            <i class="fas fa-eye"></i>
+                    <a href="{{ route('admin.outlets.show', $outlet) }}" class="btn btn-info btn-xs" title="Detail">
+                            <i class="fa fa-search"></i>
                         </a>
-                        <a href="{{ route('admin.outlets.edit', $outlet) }}" class="btn btn-primary btn-sm" title="Edit">
-                            <i class="fas fa-edit"></i>
+                        <a href="{{ route('admin.outlets.edit', $outlet) }}" class="btn btn-primary btn-xs" title="Edit">
+                            <i class="fa fa-edit"></i>
                         </a>
                         <form action="{{ route('admin.outlets.destroy', $outlet) }}" method="POST" class="d-inline">
                             @csrf @method('DELETE')
-                            <button type="submit" class="btn btn-danger btn-sm" title="Hapus"
+                            <button type="submit" class="btn btn-danger btn-xs" title="Hapus"
                                     onclick="return confirm('Hapus outlet ini?')">
-                                <i class="fas fa-trash"></i>
+                                <i class="fa fa-trash"></i>
                             </button>
                         </form>
-                    </div>
                 </td>
             </tr>
         @endforeach
