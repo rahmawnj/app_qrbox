@@ -53,16 +53,17 @@
             </td>
             <td><code>{{ Str::snake($serviceType->name) }}</code></td>
             <td class="text-nowrap">
-                <a href="{{ route('admin.service_types.show', $serviceType->id) }}" class="btn btn-info btn-sm">
-                    <i class="fa fa-eye"></i> Detail
+                <a href="{{ route('admin.service_types.show', $serviceType->id) }}" class="btn btn-info btn-xs" title="Detail">
+                    <i class="fa fa-search"></i>
                 </a>
-                <a href="{{ route('admin.service_types.edit', $serviceType->id) }}" class="btn btn-primary btn-sm">
-                    <i class="fa fa-edit"></i> Edit
+                <a href="{{ route('admin.service_types.edit', $serviceType->id) }}" class="btn btn-primary btn-xs" title="Edit">
+                    <i class="fa fa-edit"></i>
                 </a>
                 <form action="{{ route('admin.service_types.destroy', $serviceType->id) }}" method="POST" class="d-inline">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Hapus tipe layanan ini?')">
+                    <button type="submit" class="btn btn-danger btn-xs" title="Hapus"
+                            onclick="return confirm('Hapus tipe layanan ini?')">
                         <i class="fa fa-trash"></i>
                     </button>
                 </form>
