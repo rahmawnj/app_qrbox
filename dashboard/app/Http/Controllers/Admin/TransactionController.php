@@ -120,7 +120,6 @@ public function index(Request $request)
             'outlet',
             'deviceTransactions.device',
             'payments.qrisTransaction',
-            'qrisTransaction',
         ]);
 
         return view('admin.transactions.show', compact('transaction'));
