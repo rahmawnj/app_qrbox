@@ -31,13 +31,8 @@ class DeviceController extends Controller
 
         // Find the device based on the provided 'device_code'.
         $device = Device::where('code', $request->device_code)->first();
- if ($device->outlet->device_token !== $apiToken) {
-            return response()->json([
-                "status" => "error",
-                "message" => "Token tidak valid atau tidak diizinkan"
-            ], 401);
-        }
-        // If the device is not found, return a 404 response.
+
+        // Jangan akses relasi outlet sebelum memastikan device ditemukan.
         if (!$device) {
             return response()->json([
                 'status'        => 'failure',
@@ -46,6 +41,13 @@ class DeviceController extends Controller
                 'activation_date' => null,
                 'source'        => null
             ], 404);
+        }
+
+        if (!$device->outlet || $device->outlet->device_token !== $apiToken) {
+            return response()->json([
+                "status" => "error",
+                "message" => "Token tidak valid atau tidak diizinkan"
+            ], 401);
         }
 
         $deviceBypassActivation = null;
