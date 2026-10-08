@@ -884,6 +884,7 @@
         const node = template.content.firstElementChild.cloneNode(true);
 
         node.dataset.cardId = card.id;
+        node.id = card.id;
         node.querySelector('.method-pill').textContent = card.method;
         node.querySelector('.method-pill').classList.add(card.method === 'GET' ? 'get' : 'post');
         node.querySelector('.card-title').textContent = card.title;
