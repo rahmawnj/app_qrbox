@@ -170,7 +170,31 @@ Route::get('/clear-config', function () {
 
     Route::prefix('admin')->name('admin.')->middleware('auth:admin_config')->group(function () {
         Route::get('/api-docs', function () {
-            return view('api_docs');
+            $devices = \App\Models\Device::with(['outlet', 'serviceType'])
+                ->orderBy('name')
+                ->get()
+                ->map(function ($device) {
+                    return [
+                        'id' => $device->id,
+                        'code' => $device->code,
+                        'name' => $device->name,
+                        'status' => $device->device_status ?? 'off',
+                        'outlet_id' => $device->outlet_id,
+                        'outlet_name' => $device->outlet?->outlet_name,
+                        'service_type_id' => $device->service_type_id,
+                        'service_type' => $device->serviceType?->name,
+                        'menus' => collect([
+                            $device->option_1,
+                            $device->option_2,
+                            $device->option_3,
+                            $device->option_4,
+                        ])->filter(function ($menu) {
+                            return is_array($menu) && !empty($menu['type']) && ($menu['active'] ?? true) !== false && ($menu['type'] ?? '') !== 'disabled';
+                        })->values()->all(),
+                    ];
+                });
+
+            return view('api_docs', compact('devices'));
         });
 
 
