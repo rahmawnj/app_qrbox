@@ -354,21 +354,21 @@
         </div>
 
         <div class="nav-label">Dokumentasi</div>
-        <a class="nav-link" href="#overview">Overview</a>
-        <a class="nav-link" href="#device-console">Device Console</a>
-        <a class="nav-link" href="#device-api">Device API</a>
-        <a class="nav-link" href="#payment-api">Payment API</a>
-        <a class="nav-link" href="#callback-api">Callback</a>
+        <a class="nav-link" href="{{ url('/api-docs') }}">Overview</a>
+        <a class="nav-link" href="{{ url('/api-docs/device-console') }}">Device Console</a>
+        <a class="nav-link" href="{{ url('/api-docs/device-api') }}">Device API</a>
+        <a class="nav-link" href="{{ url('/api-docs/payment-api') }}">Payment API</a>
+        <a class="nav-link" href="{{ url('/api-docs/callback-api') }}">Callback</a>
 
         <div class="nav-label">Endpoint</div>
-        <a class="nav-link" href="#device-menu"><span>Device Menu</span><span class="pill get">GET</span></a>
-        <a class="nav-link" href="#update-status"><span>Update Status</span><span class="pill post">POST</span></a>
-        <a class="nav-link" href="#check-device"><span>Check Device</span><span class="pill get">GET</span></a>
-        <a class="nav-link" href="#device-price"><span>Device Price</span><span class="pill get">GET</span></a>
-        <a class="nav-link" href="#qr-request"><span>QR Request</span><span class="pill post">POST</span></a>
-        <a class="nav-link" href="#payment-check"><span>Payment Check</span><span class="pill get">GET</span></a>
-        <a class="nav-link" href="#payment-check-2"><span>Payment Check 2</span><span class="pill get">GET</span></a>
-        <a class="nav-link" href="#payment-status-update"><span>Callback</span><span class="pill post">POST</span></a>
+        <a class="nav-link" href="{{ url('/api-docs/device-menu') }}"><span>Device Menu</span><span class="pill get">GET</span></a>
+        <a class="nav-link" href="{{ url('/api-docs/update-status') }}"><span>Update Status</span><span class="pill post">POST</span></a>
+        <a class="nav-link" href="{{ url('/api-docs/check-device') }}"><span>Check Device</span><span class="pill get">GET</span></a>
+        <a class="nav-link" href="{{ url('/api-docs/device-price') }}"><span>Device Price</span><span class="pill get">GET</span></a>
+        <a class="nav-link" href="{{ url('/api-docs/qr-request') }}"><span>QR Request</span><span class="pill post">POST</span></a>
+        <a class="nav-link" href="{{ url('/api-docs/payment-check') }}"><span>Payment Check</span><span class="pill get">GET</span></a>
+        <a class="nav-link" href="{{ url('/api-docs/payment-check-2') }}"><span>Payment Check 2</span><span class="pill get">GET</span></a>
+        <a class="nav-link" href="{{ url('/api-docs/payment-status-update') }}"><span>Callback</span><span class="pill post">POST</span></a>
     </aside>
 
     <main class="main">
