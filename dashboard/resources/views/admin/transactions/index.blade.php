@@ -481,7 +481,7 @@
                     </tbody>
                     <tfoot class="bg-light fw-bold" style="border-top: 2px solid #ccc;">
                         <tr>
-                            <td colspan="5" class="text-end text-uppercase">Total Halaman Ini (Status Success Only):</td>
+                            <td colspan="6" class="text-end text-uppercase">Total Halaman Ini (Status Success Only):</td>
                             <td colspan="4">
                                 <span class="text-success me-3">Pemasukan: Rp {{ number_format($pageIncome, 0, ',', '.') }}</span>
                                 <span class="text-danger">Penarikan: Rp {{ number_format($pageWithdrawal, 0, ',', '.') }}</span>
