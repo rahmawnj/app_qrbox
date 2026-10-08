@@ -5,3 +5,4 @@
 /storage/*.key
 /storage/logs/*
 .phpunit.result.cache
+*.zip
