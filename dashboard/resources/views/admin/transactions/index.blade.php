@@ -437,7 +437,11 @@
                                 <td>{{ $transaction->order_id ?? 'N/A' }}</td>
                                 <td>
                                     @php
-                                        $deviceCodes = $transaction->deviceTransactions->pluck('device_code')->filter()->unique()->values();
+                                        $deviceCodes = collect([$transaction->selfServiceTransaction?->device_code])
+    ->merge($transaction->deviceTransactions->pluck('device_code'))
+    ->filter()
+    ->unique()
+    ->values();
                                     @endphp
                                     @if ($deviceCodes->isNotEmpty())
                                         @foreach ($deviceCodes as $deviceCode)
