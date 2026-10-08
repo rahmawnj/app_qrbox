@@ -120,21 +120,18 @@
                                     @endif
                                 </td>
                              <td>
-                                <div class="btn-group">
-                                    {{-- Tombol Detail Baru --}}
-                                    <a href="{{ route('admin.devices.show', $device) }}" class="btn btn-info btn-sm">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    <a href="{{ route('admin.devices.edit', $device) }}" class="btn btn-primary btn-sm">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <form action="{{ route('admin.devices.destroy', $device) }}" method="POST" class="d-inline">
-                                        @csrf @method('DELETE')
-                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Hapus device?')">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
-                                </div>
+                                <a href="{{ route('admin.devices.show', $device) }}" class="btn btn-info btn-xs" title="Detail">
+                                    <i class="fa fa-search"></i>
+                                </a>
+                                <a href="{{ route('admin.devices.edit', $device) }}" class="btn btn-primary btn-xs" title="Edit">
+                                    <i class="fa fa-edit"></i>
+                                </a>
+                                <form action="{{ route('admin.devices.destroy', $device) }}" method="POST" class="d-inline">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="btn btn-danger btn-xs" title="Hapus device?" onclick="return confirm('Hapus device?')">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                </form>
                             </td>
                             </tr>
                         @endforeach
