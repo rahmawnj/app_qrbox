@@ -98,7 +98,7 @@ return view('print');
 
 Route::get('cust-service', [CustomerServiceController::class,'index']);
 
-Route::get('api-docs', function () {
+Route::get('api-docs/{page?}', function ($page = 'overview') {
     $devices = \App\Models\Device::with(['outlet', 'serviceType'])
         ->orderBy('name')
         ->get()
@@ -123,7 +123,7 @@ Route::get('api-docs', function () {
             ];
         });
 
-    return view('api_docs', compact('devices'));
+    return view('api_docs', compact('devices', 'page'))->with('apiDocsPage', $page);
 })->name('api.docs');
 
 Route::get('dashboard', function () {
