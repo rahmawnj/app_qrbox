@@ -110,7 +110,7 @@ $outlets = getData()
             event(new NotificationEvent(
                 recipients: $outlet->owner->user,
                 title: '💸 Topup Member',
-                message: 'Member ' . $member->user->name . ' telah melakukan topup sebesar Rp. ' . number_format($amountToAddToBalance, 0, ',', '.') . ' di outlet ' . $outlet->name . '.',
+                message: 'Member ' . $member->user->name . ' telah melakukan topup sebesar Rp. ' . number_format($amountToAddToBalance, 0, ',', '.') . ' di outlet ' . $outlet->outlet_name . '.',
                 url: route('partner.topup.histories')
             ));
 

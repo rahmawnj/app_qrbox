@@ -6,6 +6,7 @@
 @props([
     'title' => 'List Device',
 ])
+@section('title', $title ?? 'List Device')
 
 @push('styles')
     <link href="{{ asset('assets/plugins/switchery/dist/switchery.min.css') }}" rel="stylesheet" />
@@ -338,8 +339,8 @@
                                                     </div>
                                                     <div class="form-group mb-3">
                                                         <label for="device-outlet-{{ $device->id }}">Outlet</label>
-                                                        <select name="outlet_id" id="device-outlet-{{ $device->id }}"
-                                                            class="form-control" required>
+                                                        <select id="device-outlet-{{ $device->id }}"
+                                                            class="form-control" disabled>
                                                             <option value="">Pilih Outlet</option>
                                                             @foreach ($outlets as $outlet)
                                                                 <option value="{{ $outlet->id }}"
@@ -348,6 +349,7 @@
                                                                 </option>
                                                             @endforeach
                                                         </select>
+                                                        <input type="hidden" name="outlet_id" value="{{ $device->outlet_id }}">
                                                     </div>
                                                 </div>
                                                 <div class="modal-footer">

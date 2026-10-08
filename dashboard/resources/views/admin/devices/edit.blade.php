@@ -120,9 +120,9 @@
                                             <div class="row mb-2">
                                                 <div class="col-6">
                                                     <label class="small fw-bold">Tipe Key</label>
-                                                    <input type="text" id="display-type-{{ $i }}"
+                                                    <input type="text" id="display-type-{{ $i }}" data-id="{{ $i }}"
                                                            value="{{ ($m['type'] ?? '') !== 'disabled' ? ($m['type'] ?? '-') : '-' }}"
-                                                           class="form-control form-control-sm bg-light fw-bold" readonly>
+                                                           class="form-control form-control-sm fw-bold type-key-input" {{ !$isActive ? 'disabled' : '' }}>
                                                 </div>
                                                 <div class="col-6">
                                                     <label class="small fw-bold">Harga (Rp)</label>
@@ -200,6 +200,11 @@
                 const index = $(this).data('id');
                 const val = parseInt($(this).val()) || 0;
                 updateDurationDisplay(index, val);
+            });
+
+            $(document).on('input', '.type-key-input', function() {
+                const index = $(this).data('id');
+                $(`#type-${index}`).val($(this).val().trim());
             });
 
             // 3. Handle Perubahan Service Type

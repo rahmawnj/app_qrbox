@@ -176,12 +176,14 @@
                     },
                     dangerMode: true,
                 }).then(note => {
-                    if (!note) {
-                        selectElement.val(originalStatus); // Reset jika batal
-                        return;
-                    }
-                    sendUpdateRequest(deviceId, newStatus, note, selectElement);
-                });
+    if (!note || note.trim() === '') {
+        swal("Gagal!", "Alasan bypass wajib diisi.", "warning");
+        selectElement.val(originalStatus);
+        return;
+    }
+
+    sendUpdateRequest(deviceId, newStatus, note.trim(), selectElement);
+});
             } else {
                 // Jika mematikan bypass (kembali ke off)
                 sendUpdateRequest(deviceId, 'off', 'Bypass dimatikan', selectElement);

@@ -41,11 +41,11 @@ public function serviceType()
     return $this->belongsTo(ServiceType::class);
 }
 
-    // public function serviceTypes()
-    // {
-    //     return $this->belongsToMany(ServiceType::class, 'device_service_type')
-    //         ->withPivot('price');
-    // }
+    public function serviceTypes()
+    {
+        return $this->belongsToMany(ServiceType::class, 'device_service_type')
+            ->withPivot('price');
+    }
 
     public function outlet()
     {

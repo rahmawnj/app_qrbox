@@ -98,8 +98,32 @@ return view('print');
 
 Route::get('cust-service', [CustomerServiceController::class,'index']);
 
-Route::get('api-docs', function () {
-    return view('api_docs');
+Route::get('api-docs/{page?}', function ($page = 'overview') {
+    $devices = \App\Models\Device::with(['outlet', 'serviceType'])
+        ->orderBy('name')
+        ->get()
+        ->map(function ($device) {
+            return [
+                'id' => $device->id,
+                'code' => $device->code,
+                'name' => $device->name,
+                'status' => $device->device_status ?? 'off',
+                'outlet_id' => $device->outlet_id,
+                'outlet_name' => $device->outlet?->outlet_name,
+                'service_type_id' => $device->service_type_id,
+                'service_type' => $device->serviceType?->name,
+                'menus' => collect([
+                    $device->option_1,
+                    $device->option_2,
+                    $device->option_3,
+                    $device->option_4,
+                ])->filter(function ($menu) {
+                    return is_array($menu) && !empty($menu['type']) && ($menu['active'] ?? true) !== false && ($menu['type'] ?? '') !== 'disabled';
+                })->values()->all(),
+            ];
+        });
+
+    return view('api_docs', compact('devices', 'page'))->with('apiDocsPage', $page);
 })->name('api.docs');
 
 Route::get('dashboard', function () {
@@ -146,7 +170,31 @@ Route::get('/clear-config', function () {
 
     Route::prefix('admin')->name('admin.')->middleware('auth:admin_config')->group(function () {
         Route::get('/api-docs', function () {
-            return view('api_docs');
+            $devices = \App\Models\Device::with(['outlet', 'serviceType'])
+                ->orderBy('name')
+                ->get()
+                ->map(function ($device) {
+                    return [
+                        'id' => $device->id,
+                        'code' => $device->code,
+                        'name' => $device->name,
+                        'status' => $device->device_status ?? 'off',
+                        'outlet_id' => $device->outlet_id,
+                        'outlet_name' => $device->outlet?->outlet_name,
+                        'service_type_id' => $device->service_type_id,
+                        'service_type' => $device->serviceType?->name,
+                        'menus' => collect([
+                            $device->option_1,
+                            $device->option_2,
+                            $device->option_3,
+                            $device->option_4,
+                        ])->filter(function ($menu) {
+                            return is_array($menu) && !empty($menu['type']) && ($menu['active'] ?? true) !== false && ($menu['type'] ?? '') !== 'disabled';
+                        })->values()->all(),
+                    ];
+                });
+
+            return view('api_docs', compact('devices'));
         });
 
 
@@ -238,7 +286,7 @@ Route::get('/clear-config', function () {
         // Route::get('topup/histories', [TopupController::class, 'topupHistories'])->name('topup.histories');
         // Route::post('topup', [TopupController::class, 'processTopup'])->name('topup.store');
 
-        Route::get('bypass/logs', [AdminBypassLogController::class, 'index'])->name('bypass.logs');
+        Route::get('bypass/logs', [PartnerBypassLogController::class, 'index'])->name('bypass.logs');
 
         Route::get('transactions/all', [AdminTransactionController::class, 'index'])->name('transactions.index');
         Route::get('transactions/self-service/member', [PartnerTransactionController::class, 'self_service_member'])->name('transactions.self-service.member');

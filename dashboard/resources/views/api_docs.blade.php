@@ -905,8 +905,6 @@
             input.dataset.field = field.key;
             input.type = field.secret ? 'password' : 'text';
             input.value = valueFromSource(field.source);
-            input.readOnly = !field.editable;
-            if (field.editable) input.style.background = '#fff';
             wrap.appendChild(input);
             fields.appendChild(wrap);
         });

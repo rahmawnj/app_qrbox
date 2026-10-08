@@ -10,7 +10,7 @@ use App\Models\DeviceTransaction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
-use App\Models\BypassRecord;
+use App\Models\BypassRecord; // Pastikan model BypassRecord di-import di sini
 
 class DeviceController extends Controller
 {
@@ -31,13 +31,8 @@ class DeviceController extends Controller
 
         // Find the device based on the provided 'device_code'.
         $device = Device::where('code', $request->device_code)->first();
- if ($device->outlet->device_token !== $apiToken) {
-            return response()->json([
-                "status" => "error",
-                "message" => "Token tidak valid atau tidak diizinkan"
-            ], 401);
-        }
-        // If the device is not found, return a 404 response.
+
+        // Jangan akses relasi outlet sebelum memastikan device ditemukan.
         if (!$device) {
             return response()->json([
                 'status'        => 'failure',
@@ -46,6 +41,13 @@ class DeviceController extends Controller
                 'activation_date' => null,
                 'source'        => null
             ], 404);
+        }
+
+        if (!$device->outlet || $device->outlet->device_token !== $apiToken) {
+            return response()->json([
+                "status" => "error",
+                "message" => "Token tidak valid atau tidak diizinkan"
+            ], 401);
         }
 
         $deviceBypassActivation = null;
@@ -156,7 +158,8 @@ public function toggleStatus(Request $request, Device $device)
 
             // --- Logika Notifikasi untuk Owner ---
             // Kirim notifikasi HANYA jika status berubah menjadi bypass (bukan 'off')
-                $owner = $device->outlet->owner->user;
+                $outlet = $device->outlet;
+                $owner = $outlet?->owner?->user;
                 Log::info($owner);
                 if ($owner) {
                     $message = "Perangkat **{$device->code}** di outlet **{$device->outlet->outlet_name}** telah di-bypass ke status '{$newStatus}'.";
@@ -220,7 +223,7 @@ public function toggleStatus(Request $request, Device $device)
 
             return response()->json([
                 'status' => 'success',
-                'service_type' => $device->serviceType->name,
+                'service_type' => $device->serviceType?->name,
                 'device_name' => $device->name,
                 'device_code' => $device->code,
                 'menus' => $menus
