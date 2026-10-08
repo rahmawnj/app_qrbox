@@ -158,7 +158,7 @@
                                         <tr>
                                             <td>#{{ $payment->id }}</td>
                                             <td>Rp {{ number_format($payment->amount ?? 0, 0, ',', '.') }}</td>
-                                            <td>{{ optional($payment->payment_time)->format('d/m/Y H:i:s') ?? optional($payment->created_at)->format('d/m/Y H:i:s') ?? '-' }}</td>
+                                            <td>{{ $payment->payment_time ? \Carbon\Carbon::parse($payment->payment_time)->format('d/m/Y H:i:s') : (optional($payment->created_at)->format('d/m/Y H:i:s') ?? '-') }}</td>
                                             <td>{{ $payment->payment_method ?? '-' }}</td>
                                             <td>{{ $payment->notes ?? '-' }}</td>
                                         </tr>
