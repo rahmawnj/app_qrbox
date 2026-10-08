@@ -105,6 +105,27 @@ public function index(Request $request)
         'daterangeValue', 'statusFilter'
     ));
 }
+    public function show(Transaction $transaction)
+    {
+        $access = getData();
+        $isAdmin = auth('admin_config')->check();
+
+        if (!$isAdmin) {
+            $brand = $access->getBrand();
+            abort_unless($brand && (int) $transaction->owner_id === (int) $brand->id, 403);
+        }
+
+        $transaction->load([
+            'owner.user',
+            'outlet',
+            'deviceTransactions.device',
+            'payments.qrisTransaction',
+            'qrisTransaction',
+        ]);
+
+        return view('admin.transactions.show', compact('transaction'));
+    }
+
     public function self_service_member(Request $request)
     {
         $baseQuery = Transaction::with([
