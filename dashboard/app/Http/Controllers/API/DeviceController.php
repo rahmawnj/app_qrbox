@@ -158,7 +158,8 @@ public function toggleStatus(Request $request, Device $device)
 
             // --- Logika Notifikasi untuk Owner ---
             // Kirim notifikasi HANYA jika status berubah menjadi bypass (bukan 'off')
-                $owner = $device->outlet->owner->user;
+                $outlet = $device->outlet;
+                $owner = $outlet?->owner?->user;
                 Log::info($owner);
                 if ($owner) {
                     $message = "Perangkat **{$device->code}** di outlet **{$device->outlet->outlet_name}** telah di-bypass ke status '{$newStatus}'.";
@@ -222,7 +223,7 @@ public function toggleStatus(Request $request, Device $device)
 
             return response()->json([
                 'status' => 'success',
-                'service_type' => $device->serviceType->name,
+                'service_type' => $device->serviceType?->name,
                 'device_name' => $device->name,
                 'device_code' => $device->code,
                 'menus' => $menus
