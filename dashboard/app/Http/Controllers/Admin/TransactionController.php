@@ -31,7 +31,7 @@ public function index(Request $request)
     }
 
     // 2. Inisialisasi Query Utama
-    $baseQuery = \App\Models\Transaction::with(['owner', 'outlet', 'deviceTransactions.device', 'payments.qrisTransaction'])
+    $baseQuery = \App\Models\Transaction::with(['owner', 'outlet', 'selfServiceTransaction', 'deviceTransactions.device', 'payments.qrisTransaction'])
         ->whereIn('owner_id', $accessibleOwnerIds);
 
     // 3. Filter Multi-select Owner (Admin Only)
