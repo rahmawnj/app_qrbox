@@ -354,21 +354,21 @@
         </div>
 
         <div class="nav-label">Dokumentasi</div>
-        <a class="nav-link" href="{{ url('/api-docs') }}">Overview</a>
-        <a class="nav-link" href="{{ url('/api-docs/device-console') }}">Device Console</a>
-        <a class="nav-link" href="{{ url('/api-docs/device-api') }}">Device API</a>
-        <a class="nav-link" href="{{ url('/api-docs/payment-api') }}">Payment API</a>
-        <a class="nav-link" href="{{ url('/api-docs/callback-api') }}">Callback</a>
+        <a class="nav-link" href="{{ route('api.docs') }}#overview">Overview</a>
+        <a class="nav-link" href="{{ route('api.docs') }}#device-console">Device Console</a>
+        <a class="nav-link" href="{{ route('api.docs') }}#device-api">Device API</a>
+        <a class="nav-link" href="{{ route('api.docs') }}#payment-api">Payment API</a>
+        <a class="nav-link" href="{{ route('api.docs') }}#callback-api">Callback</a>
 
         <div class="nav-label">Endpoint</div>
-        <a class="nav-link" href="{{ url('/api-docs/device-menu') }}"><span>Device Menu</span><span class="pill get">GET</span></a>
-        <a class="nav-link" href="{{ url('/api-docs/update-status') }}"><span>Update Status</span><span class="pill post">POST</span></a>
-        <a class="nav-link" href="{{ url('/api-docs/check-device') }}"><span>Check Device</span><span class="pill get">GET</span></a>
-        <a class="nav-link" href="{{ url('/api-docs/device-price') }}"><span>Device Price</span><span class="pill get">GET</span></a>
-        <a class="nav-link" href="{{ url('/api-docs/qr-request') }}"><span>QR Request</span><span class="pill post">POST</span></a>
-        <a class="nav-link" href="{{ url('/api-docs/payment-check') }}"><span>Payment Check</span><span class="pill get">GET</span></a>
-        <a class="nav-link" href="{{ url('/api-docs/payment-check-2') }}"><span>Payment Check 2</span><span class="pill get">GET</span></a>
-        <a class="nav-link" href="{{ url('/api-docs/payment-status-update') }}"><span>Callback</span><span class="pill post">POST</span></a>
+        <a class="nav-link" href="{{ route('api.docs') }}#device-menu"><span>Device Menu</span><span class="pill get">GET</span></a>
+        <a class="nav-link" href="{{ route('api.docs') }}#update-status"><span>Update Status</span><span class="pill post">POST</span></a>
+        <a class="nav-link" href="{{ route('api.docs') }}#check-device"><span>Check Device</span><span class="pill get">GET</span></a>
+        <a class="nav-link" href="{{ route('api.docs') }}#device-price"><span>Device Price</span><span class="pill get">GET</span></a>
+        <a class="nav-link" href="{{ route('api.docs') }}#qr-request"><span>QR Request</span><span class="pill post">POST</span></a>
+        <a class="nav-link" href="{{ route('api.docs') }}#payment-check"><span>Payment Check</span><span class="pill get">GET</span></a>
+        <a class="nav-link" href="{{ route('api.docs') }}#payment-check-2"><span>Payment Check 2</span><span class="pill get">GET</span></a>
+        <a class="nav-link" href="{{ route('api.docs') }}#payment-status-update"><span>Callback</span><span class="pill post">POST</span></a>
     </aside>
 
     <main class="main">
@@ -734,8 +734,8 @@
         const raw = (globals.baseUrl.value || '').trim();
         if (!raw) return window.location.origin + '/api';
 
-        let base = raw.replace(/\\/+$/, '');
-        base = base.replace(/\\/api$/i, '');
+        let base = raw.replace(/\/+$/, '');
+        base = base.replace(/\/api$/i, '');
         return base + '/api';
     }
 
@@ -1051,23 +1051,29 @@
         });
     }
 
-    // Smooth navigation for sidebar anchors after dynamic cards are mounted.
-    document.querySelectorAll('.sidebar a[href^="#"]').forEach(link => {
-        link.addEventListener('click', event => {
-            const targetId = link.getAttribute('href').slice(1);
-            const target = document.getElementById(targetId);
-            if (!target) return;
-
-            event.preventDefault();
-            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            history.replaceState(null, '', '#' + targetId);
-        });
-    });
-
     cards.forEach(mountCard);
     fillDeviceSelect();
     updateDeviceConsole();
     updateAllCards();
+    document.querySelectorAll('.sidebar a[href*="#"]').forEach(link => {
+        link.addEventListener('click', event => {
+            const destination = new URL(link.href);
+            if (destination.pathname !== window.location.pathname || destination.search !== window.location.search) return;
+
+            const target = document.getElementById(decodeURIComponent(destination.hash.slice(1)));
+            if (!target) return;
+
+            event.preventDefault();
+            history.pushState(null, '', destination.pathname + destination.search + destination.hash);
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    });
+    if (window.location.hash) {
+        requestAnimationFrame(() => {
+            document.getElementById(decodeURIComponent(window.location.hash.slice(1)))
+                ?.scrollIntoView({ block: 'start' });
+        });
+    }
 
     globals.deviceSelect.addEventListener('change', () => {
         state.selectedDeviceId = globals.deviceSelect.value;
