@@ -100,6 +100,9 @@ class QrisController extends Controller
 
         $requestBody = [
             "payment_type" => "qris",
+            // Outlet metadata: outlet_name is explicit; custom_field1 is Midtrans's supported custom metadata field.
+            "outlet_name" => $outlet->outlet_name,
+            "custom_field1" => $outlet->outlet_name,
             "transaction_details" => [
                 "order_id"     => $orderId,
                 "gross_amount" => (int)$originalPrice, // Gunakan nominal akhir
