@@ -88,6 +88,7 @@
                         <div class="row" id="menu-slots-row">
                             @php
                                 $options = [$device->option_1, $device->option_2, $device->option_3, $device->option_4];
+                                $visibleMenuCount = min(count($device->serviceType?->items ?? []), 4);
                             @endphp
 
                             @for ($i = 0; $i < 4; $i++)
@@ -96,7 +97,8 @@
                                     $isActive = isset($m['type']) && $m['type'] !== 'disabled' && ($m['active'] ?? false);
                                 @endphp
 
-                                <div class="col-md-6 mb-4">
+                                <div class="col-md-6 mb-4 menu-slot-wrapper" data-slot-index="{{ $i }}"
+                                     style="{{ $i < $visibleMenuCount ? '' : 'display: none;' }}">
                                     <div class="card border shadow-none slot-card {{ $isActive ? 'slot-active' : 'opacity-50' }}"
                                          id="slot-card-{{ $i }}" style="{{ $isActive ? '' : 'pointer-events: none;' }}">
 
@@ -212,9 +214,10 @@
             $('#service_type_id').on('change', function() {
                 const items = $(this).find(':selected').data('items') || [];
                 resetAllSlots();
-                items.forEach((item, index) => {
-                    if (index < 4) activateSlot(index, item);
+                $('.menu-slot-wrapper').each(function(index) {
+                    $(this).toggle(index < Math.min(items.length, 4));
                 });
+                items.slice(0, 4).forEach((item, index) => activateSlot(index, item));
             });
 
             function activateSlot(index, item) {
@@ -265,9 +268,11 @@
 
             // 4. Inisialisasi Saat Load (Mode Edit)
             const currentServiceItems = $('#service_type_id').find(':selected').data('items') || [];
+            $('.menu-slot-wrapper').each(function(index) {
+                $(this).toggle(index < Math.min(currentServiceItems.length, 4));
+            });
             if(currentServiceItems.length > 0) {
-                currentServiceItems.forEach((item, index) => {
-                    if (index < 4) {
+                currentServiceItems.slice(0, 4).forEach((item, index) => {
                         const durationInput = $(`#duration-${index}`);
                         const durationInfo = $(`#duration-info-${index}`);
 
