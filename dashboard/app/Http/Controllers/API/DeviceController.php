@@ -239,7 +239,7 @@ public function toggleStatus(Request $request, Device $device)
                     return false;
                 }
 
-                return $allowedKeys->isEmpty() || $allowedKeys->contains($menu['type']);
+                return $allowedKeys->contains($menu['type']);
             })->values()->all();
 
             return response()->json([
@@ -249,7 +249,7 @@ public function toggleStatus(Request $request, Device $device)
                 'device_code' => $device->code,
                 'menus' => $menus,
             ]);
-        } catch (\\Exception $e) {
+        } catch (\Exception $e) {
             Log::error('Failed to load device menu', [
                 'device_code' => $device_code,
                 'error' => $e->getMessage(),
