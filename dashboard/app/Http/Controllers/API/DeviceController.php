@@ -235,7 +235,7 @@ public function toggleStatus(Request $request, Device $device)
                     return false;
                 }
 
-                if (($menu['active'] ?? true) === false || $menu['type'] === 'disabled') {
+                if (($menu['active'] ?? false) !== true || $menu['type'] === 'disabled') {
                     return false;
                 }
 
