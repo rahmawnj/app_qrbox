@@ -185,10 +185,7 @@
             });
 
             // Set initial value for daterange input if a value exists
-            var initialDateRange = "{{ request('daterange') }}";
-            if (initialDateRange) {
-                $('#filter-daterange').val(initialDateRange);
-            }
+            $('#filter-daterange').val(@json($daterange));
 
             $('#filter-daterange').on('apply.daterangepicker', function(ev, picker) {
                 $(this).val(picker.startDate.format('YYYY-MM-DD') + ' - ' + picker.endDate.format('YYYY-MM-DD'));
@@ -264,7 +261,7 @@
                         <div class="input-group input-group-sm">
                             <span class="input-group-text"><i class="fa fa-calendar"></i></span>
                             <input type="text" name="daterange" class="form-control" id="filter-daterange"
-                                value="{{ request('daterange') }}" placeholder="Pilih Rentang Waktu">
+                                value="{{ $daterange }}" placeholder="Pilih Rentang Waktu">
                         </div>
                     </div>
                     <div class="col-md-3 col-sm-6">

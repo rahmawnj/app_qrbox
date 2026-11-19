@@ -13,7 +13,11 @@ class BypassLogController extends Controller
   public function index(Request $request)
 {
     // 1. Tangkap input daterange untuk dikirim balik ke view
-    $daterangeValue = $request->input('daterange', '');
+    $daterangeValue = $request->input('daterange');
+    if (!$daterangeValue) {
+        $daterangeValue = Carbon::today()->subDays(6)->format('Y-m-d')
+            . ' - ' . Carbon::today()->format('Y-m-d');
+    }
 
     $query = DB::table('bypass_records')
         ->join('devices', 'bypass_records.device_id', '=', 'devices.id')
@@ -45,18 +49,14 @@ class BypassLogController extends Controller
     }
 
     // Filter daterange
-    if ($request->filled('daterange')) {
-        $dateRange = explode(' - ', $request->input('daterange'));
-        if (count($dateRange) === 2 && !empty($dateRange[0]) && !empty($dateRange[1])) {
-            try {
-                // Gunakan format d/m/Y (standar PHP Carbon) bukan DD/MM/YYYY
-                $startDate = \Carbon\Carbon::createFromFormat('d/m/Y', trim($dateRange[0]))->startOfDay();
-                $endDate = \Carbon\Carbon::createFromFormat('d/m/Y', trim($dateRange[1]))->endOfDay();
-
-                $query->whereBetween('bypass_records.created_at', [$startDate, $endDate]);
-            } catch (\Exception $e) {
-                Log::error('Date Range Filter Error: ' . $e->getMessage());
-            }
+    $dateRange = explode(' - ', $daterangeValue);
+    if (count($dateRange) === 2 && !empty($dateRange[0]) && !empty($dateRange[1])) {
+        try {
+            $startDate = Carbon::createFromFormat('Y-m-d', trim($dateRange[0]))->startOfDay();
+            $endDate = Carbon::createFromFormat('Y-m-d', trim($dateRange[1]))->endOfDay();
+            $query->whereBetween('bypass_records.created_at', [$startDate, $endDate]);
+        } catch (\Exception $e) {
+            Log::error('Date Range Filter Error: ' . $e->getMessage());
         }
     }
 

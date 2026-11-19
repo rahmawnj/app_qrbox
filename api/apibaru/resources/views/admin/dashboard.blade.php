@@ -25,7 +25,7 @@
         </h4>
     </div>
 
-    <div class="panel-body bg-light">
+    <div class="panel-body bg-white">
         <form action="" method="GET" id="filterForm">
 
             <div class="d-flex flex-wrap gap-4">

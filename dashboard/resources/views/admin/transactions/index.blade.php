@@ -235,12 +235,10 @@
             });
 
             // Set initial value for daterange input if a value exists from the request
-            var initialDateRange = "{{ request('daterange') }}";
+            var initialDateRange = @json($daterangeValue);
             if (initialDateRange) {
                 $('#filter-daterange').val(initialDateRange);
             }
-            // HAPUS logika default pengisian tanggal 'hari ini' di sini
-            // sehingga input dibiarkan kosong jika tidak ada request('daterange')
 
             // Event listener for when the 'Apply' button is clicked in the daterangepicker
             $('#filter-daterange').on('apply.daterangepicker', function(ev, picker) {
@@ -324,7 +322,7 @@
                     <i class="fa fa-filter me-2"></i>Filter Data
                 </h4>
             </div>
-            <div class="panel-body bg-light">
+            <div class="panel-body bg-white">
                 <form action="{{ url()->current() }}" method="GET" id="filterForm">
                     <div class="d-flex flex-wrap gap-4">
                         <div class="flex-fill" style="min-width:260px;">

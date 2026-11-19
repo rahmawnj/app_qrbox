@@ -100,9 +100,14 @@
             $(".multiple-select2").select2({ placeholder: " Pilih satu atau lebih Brand", allowClear: true });
             $('#daterange').daterangepicker({
                 opens: 'right',
-                format: 'YYYY/MM/DD',
-                separator: ' to ',
-                locale: { applyLabel: 'Pilih', cancelLabel: 'Batal', fromLabel: 'Dari', toLabel: 'Ke', format: 'YYYY/MM/DD' }
+                locale: {
+                    format: 'YYYY-MM-DD',
+                    separator: ' - ',
+                    applyLabel: 'Pilih',
+                    cancelLabel: 'Batal',
+                    fromLabel: 'Dari',
+                    toLabel: 'Ke'
+                }
             });
         });
 

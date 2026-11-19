@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use Carbon\Carbon;
 use App\Models\Withdrawal;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
@@ -109,7 +110,10 @@ public function histories(Request $request)
 {
     // 1. Ambil data owner yang sedang login (Gunakan helper getBrand() kamu)
     $owner = getBrand();
-    $daterange = $request->query('daterange', '');
+    $daterange = $request->query('daterange');
+    if (!$daterange) {
+        $daterange = Carbon::today()->subDays(6)->format('Y-m-d') . ' - ' . Carbon::today()->format('Y-m-d');
+    }
 
     // 2. Tentukan Query Dasar
     // Jika ada $owner, filter berdasarkan owner tersebut.
@@ -127,14 +131,12 @@ public function histories(Request $request)
     }
 
     // 3. Filter Rentang Waktu
-    if ($request->filled('daterange')) {
-        $dates = explode(' - ', $request->daterange);
-        if (count($dates) === 2) {
-            $query->whereBetween('created_at', [
-                trim($dates[0]) . ' 00:00:00',
-                trim($dates[1]) . ' 23:59:59'
-            ]);
-        }
+    $dates = explode(' - ', $daterange);
+    if (count($dates) === 2) {
+        $query->whereBetween('created_at', [
+            trim($dates[0]) . ' 00:00:00',
+            trim($dates[1]) . ' 23:59:59'
+        ]);
     }
 
     // 4. Filter Pencarian (Hanya aktif untuk Admin)

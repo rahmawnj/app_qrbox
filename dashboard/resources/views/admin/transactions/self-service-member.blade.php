@@ -206,9 +206,16 @@
                 }
             });
 
-            var initialDateRange = "{{ request('daterange') }}";
+            var initialDateRange = @json(request('daterange'));
             if (initialDateRange) {
                 $('#filter-daterange').val(initialDateRange);
+            } else {
+                var endDate = moment().format('YYYY-MM-DD');
+                var startDate = moment().subtract(6, 'days').format('YYYY-MM-DD');
+                $('#filter-daterange').val(startDate + ' - ' + endDate);
+                var datePicker = $('#filter-daterange').data('daterangepicker');
+                datePicker.setStartDate(startDate);
+                datePicker.setEndDate(endDate);
             }
 
             $('#filter-daterange').on('apply.daterangepicker', function(ev, picker) {

@@ -61,31 +61,26 @@ class TransactionController extends Controller
         }
 
 
-        $shouldPaginate = true;
-
-        if ($request->has('daterange') && $request->daterange != '') {
-            list($startDate, $endDate) = explode(' - ', $request->daterange);
-            $startDate = Carbon::parse($startDate)->startOfDay();
-            $endDate = Carbon::parse($endDate)->endOfDay();
-            $filterableQuery->whereBetween('created_at', [$startDate, $endDate]);
-        } else {
-            $today = Carbon::now();
-            $startOfToday = $today->copy()->startOfDay();
-            $endOfToday = $today->copy()->endOfDay();
-            $filterableQuery->whereBetween('created_at', [$startOfToday, $endOfToday]);
-            $shouldPaginate = false;
+        $shouldPaginate = $request->filled('daterange');
+        $daterange = $request->input('daterange');
+        if (!$daterange) {
+            $daterange = Carbon::today()->subDays(6)->format('Y-m-d')
+                . ' - ' . Carbon::today()->format('Y-m-d');
         }
+        [$startDate, $endDate] = explode(' - ', $daterange);
+        $startDate = Carbon::parse($startDate)->startOfDay();
+        $endDate = Carbon::parse($endDate)->endOfDay();
+        $filterableQuery->whereBetween('created_at', [$startDate, $endDate]);
+        $daterangeValue = $startDate->format('Y-m-d') . ' - ' . $endDate->format('Y-m-d');
 
         // Ambil jumlah total transaksi
         $totalTransactionsCount = (clone $filterableQuery)->count();
 
-        if ($shouldPaginate) {
-            $transactions = $filterableQuery->orderBy('created_at', 'desc')->paginate(200);
-        } else {
-            $transactions = $filterableQuery->orderBy('created_at', 'desc')->get();
-        }
+        $transactions = $shouldPaginate
+            ? $filterableQuery->orderBy('created_at', 'desc')->paginate(200)
+            : $filterableQuery->orderBy('created_at', 'desc')->get();
 
-        return view('partner.transactions.index', compact('transactions', 'totalTransactionsCount'));
+        return view('partner.transactions.index', compact('transactions', 'totalTransactionsCount', 'daterangeValue'));
     }
 
     public function self_service_member(Request $request)
@@ -336,7 +331,7 @@ public function drop_off_member(Request $request)
             $startDate = Carbon::parse($startDate)->startOfDay();
             $endDate = Carbon::parse($endDate)->endOfDay();
         } else {
-            $startDate = now()->startOfDay();
+            $startDate = now()->subDays(6)->startOfDay();
             $endDate = now()->endOfDay();
         }
         $query->whereBetween($dateColumn, [$startDate, $endDate]);

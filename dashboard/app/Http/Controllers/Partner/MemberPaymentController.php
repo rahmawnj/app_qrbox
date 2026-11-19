@@ -115,8 +115,11 @@ class MemberPaymentController extends Controller
 
     public function member_transaction(Request $request)
     {
+        $startDate = $request->input('start_date') ?: now()->subDays(6)->toDateString();
+        $endDate = $request->input('end_date') ?: now()->toDateString();
+
         $query = MemberTransactionDetail::with(['transaction.owner', 'transaction.outlet']);
-        $query->whereHas('transaction', function ($q) use ($request) {
+        $query->whereHas('transaction', function ($q) use ($request, $startDate, $endDate) {
 
             $outletIds = getData()->outlets->pluck('id')->toArray();
             $q->whereIn('outlet_id', $outletIds);
@@ -132,12 +135,8 @@ class MemberPaymentController extends Controller
             }
 
             // Filter berdasarkan tanggal transaksi (dibandingkan dengan created_at di tabel transactions)
-            if ($request->filled('start_date')) {
-                $q->whereDate('created_at', '>=', $request->start_date);
-            }
-            if ($request->filled('end_date')) {
-                $q->whereDate('created_at', '<=', $request->end_date);
-            }
+            $q->whereDate('created_at', '>=', $startDate);
+            $q->whereDate('created_at', '<=', $endDate);
 
             // Filter pencarian: Order ID, Amount, atau Owner (nama user)
             if ($request->filled('search')) {
@@ -154,6 +153,6 @@ class MemberPaymentController extends Controller
 
         $memberTransactions = $query->orderBy('created_at', 'desc')->paginate(20);
 
-        return view('partner.member_payment.transactions', compact('memberTransactions'));
+        return view('partner.member_payment.transactions', compact('memberTransactions', 'startDate', 'endDate'));
     }
 }

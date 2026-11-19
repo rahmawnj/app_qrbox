@@ -40,12 +40,12 @@ class DashboardController extends Controller
         $daterange = $request->input('daterange');
         if ($daterange) {
             $dateRange = str_contains($daterange, ' to ') ? explode(' to ', $daterange) : explode(' - ', $daterange);
-            $startDate = \Carbon\Carbon::createFromFormat('Y/m/d', trim($dateRange[0]))->startOfDay();
-            $endDate = \Carbon\Carbon::createFromFormat('Y/m/d', trim($dateRange[1]))->endOfDay();
+            $startDate = \Carbon\Carbon::createFromFormat('Y-m-d', trim($dateRange[0]))->startOfDay();
+            $endDate = \Carbon\Carbon::createFromFormat('Y-m-d', trim($dateRange[1]))->endOfDay();
         } else {
-            $startDate = \Carbon\Carbon::now()->subDays(30)->startOfDay();
-            $endDate = \Carbon\Carbon::now()->endOfDay();
-            $daterange = $startDate->format('Y/m/d') . ' - ' . $endDate->format('Y/m/d');
+            $startDate = \Carbon\Carbon::today()->subDays(6)->startOfDay();
+            $endDate = \Carbon\Carbon::today()->endOfDay();
+            $daterange = $startDate->format('Y-m-d') . ' - ' . $endDate->format('Y-m-d');
         }
 
         // --- 4. BASE QUERIES (Saring berdasarkan Akses Outlet & Filter Owner) ---

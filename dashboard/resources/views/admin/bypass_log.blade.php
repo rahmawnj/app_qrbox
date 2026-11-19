@@ -92,7 +92,7 @@
                     <i class="fa fa-filter me-2"></i>Filter Data
                 </h4>
             </div>
-            <div class="panel-body bg-light">
+            <div class="panel-body bg-white">
                 <form action="{{ url()->current() }}" method="GET" id="filterForm">
                     <div class="d-flex flex-wrap gap-4">
                         <div class="flex-fill" style="min-width:260px;">
@@ -302,7 +302,8 @@
                 opens: 'left', // Posisi calendar
                 autoUpdateInput: false, // Jangan update input otomatis
                 locale: {
-                    format: 'DD/MM/YYYY', // Format tampilan di input
+                    format: 'YYYY-MM-DD',
+                    separator: ' - ',
                     cancelLabel: 'Clear',
                     applyLabel: 'Apply',
                     daysOfWeek: ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'],
@@ -313,7 +314,7 @@
                 }
             }, function(start, end, label) {
                 // Ketika tanggal dipilih, update nilai input
-                $('#filter-daterange').val(start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY'));
+                $('#filter-daterange').val(start.format('YYYY-MM-DD') + ' - ' + end.format('YYYY-MM-DD'));
             });
 
             // Handle tombol "Clear" pada Date Range Picker
@@ -321,11 +322,7 @@
                 $(this).val('');
             });
 
-            // Set nilai input kembali jika ada di request sebelumnya
-            if ($('#filter-daterange').val() == '') {
-                $('#filter-daterange').data('daterangepicker').setStartDate(moment());
-                $('#filter-daterange').data('daterangepicker').setEndDate(moment());
-            }
+            $('#filter-daterange').val(@json($daterangeValue));
 
             // Optional: Jika ingin menggunakan DataTables (sudah dikomentari sebelumnya)
             // $('#data-table').DataTable({

@@ -92,7 +92,7 @@
                     <i class="fa fa-filter me-2"></i>Filter Data
                 </h4>
             </div>
-            <div class="panel-body bg-light">
+            <div class="panel-body bg-white">
                 <form action="{{ url()->current() }}" method="GET" id="filterForm">
                     <div class="d-flex flex-wrap gap-4">
                         <div class="flex-fill" style="min-width:260px;">

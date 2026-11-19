@@ -172,7 +172,8 @@
                 opens: 'left',
                 autoUpdateInput: false, // Jangan update input otomatis, kita update manual
                 locale: {
-                    format: 'YYYY/MM/DD', // Tetap ini jika Anda ingin YYYY/MM/DD
+                    format: 'YYYY-MM-DD',
+                    separator: ' - ',
                     cancelLabel: 'Clear',
                     applyLabel: 'Apply',
                     daysOfWeek: ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'],
@@ -194,8 +195,8 @@
                 // --- AKHIR BAGIAN YANG DITAMBAHKAN/MODIFIKASI ---
             }, function(start, end, label) {
                 // Ketika tanggal dipilih, update nilai input
-                $('#dashboard-daterange').val(start.format('YYYY/MM/DD') + ' - ' + end.format(
-                    'YYYY/MM/DD'));
+                $('#dashboard-daterange').val(start.format('YYYY-MM-DD') + ' - ' + end.format(
+                    'YYYY-MM-DD'));
             });
 
             // Event listener untuk tombol "Clear" pada Date Range Picker
@@ -223,7 +224,7 @@
             });
 
             // Set nilai input kembali jika ada di request sebelumnya
-            var currentDaterange = "{{ request('daterange') }}";
+            var currentDaterange = @json($daterangeFilter ?? '');
             if (currentDaterange) {
                 $('#dashboard-daterange').val(currentDaterange);
             } else {

@@ -37,9 +37,9 @@
                             <option value="failed" {{ request('status') == 'failed' ? 'selected' : '' }}>Failed</option>
                         </select>
                         <input type="date" name="start_date" class="form-control" style="max-width: 140px;"
-                            value="{{ request('start_date') }}">
+                            value="{{ $startDate }}">
                         <input type="date" name="end_date" class="form-control" style="max-width: 140px;"
-                            value="{{ request('end_date') }}">
+                            value="{{ $endDate }}">
                     </div>
                     <!-- Input Search -->
                     <div class="flex-fill">

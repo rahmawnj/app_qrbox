@@ -222,13 +222,13 @@
             });
 
             // Set initial value for daterange input if a value exists
-            var initialDateRange = "{{ request('daterange') }}";
+            var initialDateRange = @json($daterangeValue);
             if (initialDateRange) {
                 $('#filter-daterange').val(initialDateRange);
             } else {
-                // Optionally set a default range, e.g., "Hari Ini" if no range is selected
-                // var today = moment().format('YYYY-MM-DD');
-                // $('#filter-daterange').val(today + ' - ' + today);
+                var endDate = moment().format('YYYY-MM-DD');
+                var startDate = moment().subtract(6, 'days').format('YYYY-MM-DD');
+                $('#filter-daterange').val(startDate + ' - ' + endDate);
             }
 
 
@@ -316,7 +316,7 @@
                         <div class="input-group input-group-sm">
                             <span class="input-group-text"><i class="fa fa-calendar"></i></span>
                             <input type="text" name="daterange" class="form-control" id="filter-daterange"
-                                value="{{ request('daterange') }}" placeholder="Pilih Rentang Waktu">
+                                value="{{ $daterangeValue }}" placeholder="Pilih Rentang Waktu">
                         </div>
                     </div>
                     <div class="col-md-3 col-sm-6"> {{-- Ubah col-md-2 menjadi col-md-3 --}}

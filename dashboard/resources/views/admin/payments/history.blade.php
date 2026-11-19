@@ -50,7 +50,7 @@
     <div class="panel-heading">
         <h4 class="panel-title"><i class="fa fa-filter me-2"></i>Filter Riwayat</h4>
     </div>
-    <div class="panel-body bg-light">
+    <div class="panel-body bg-white">
         <form action="{{ url()->current() }}" method="GET">
             <div class="d-flex flex-wrap gap-4">
                 <div class="flex-fill" style="min-width:260px;">
@@ -137,10 +137,10 @@
         $(".multiple-select2").select2({ placeholder: " Semua Brand" });
         $('#filter-daterange').daterangepicker({
             autoUpdateInput: false,
-            locale: { format: 'YYYY/MM/DD', cancelLabel: 'Clear' }
+            locale: { format: 'YYYY-MM-DD', separator: ' - ', cancelLabel: 'Clear' }
         });
         $('#filter-daterange').on('apply.daterangepicker', function(ev, picker) {
-            $(this).val(picker.startDate.format('YYYY/MM/DD') + ' - ' + picker.endDate.format('YYYY/MM/DD'));
+            $(this).val(picker.startDate.format('YYYY-MM-DD') + ' - ' + picker.endDate.format('YYYY-MM-DD'));
         });
     });
 </script>

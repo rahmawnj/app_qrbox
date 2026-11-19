@@ -139,16 +139,22 @@ $outlets = getData()
         $ownerOutletIds = getData()->outlets->pluck('id')->toArray();
         $query->whereIn('outlet_id', $ownerOutletIds);
 
+        $daterange = $request->input('daterange');
+        if (!$daterange) {
+            $daterange = Carbon::today('Asia/Jakarta')->subDays(6)->format('Y-m-d')
+                . ' - ' . Carbon::today('Asia/Jakarta')->format('Y-m-d');
+        }
+
         // 1. Date Range Filter
-        if ($request->filled('daterange')) {
-            $dateRange = explode(' - ', $request->daterange);
+        if ($daterange) {
+            $dateRange = explode(' - ', $daterange);
             if (count($dateRange) === 2) {
                 try {
                     $startDate = Carbon::createFromFormat('Y-m-d', $dateRange[0], 'Asia/Jakarta')->startOfDay();
                     $endDate = Carbon::createFromFormat('Y-m-d', $dateRange[1], 'Asia/Jakarta')->endOfDay();
                     $query->whereBetween('time', [$startDate, $endDate]);
                 } catch (\Exception $e) {
-                    Log::error('Invalid daterange format: ' . $request->daterange . ' - ' . $e->getMessage());
+                    Log::error('Invalid daterange format: ' . $daterange . ' - ' . $e->getMessage());
                 }
             }
         }
@@ -200,8 +206,8 @@ $outlets = getData()
         }
 
         // Apply date range filter to summaries (if present in request)
-        if ($request->filled('daterange')) {
-            $dateRange = explode(' - ', $request->daterange);
+        if ($daterange) {
+            $dateRange = explode(' - ', $daterange);
             if (count($dateRange) === 2) {
                 try {
                     $startDate = Carbon::createFromFormat('Y-m-d', $dateRange[0], 'Asia/Jakarta')->startOfDay();
@@ -221,6 +227,7 @@ $outlets = getData()
             'totalTopupsCount',
             'totalTopupsAmount',
             'cashierTopupsCount',
+            'daterange',
         ));
     }
 }

@@ -125,7 +125,7 @@
                         <label for="filter-daterange" class="form-label">Rentang Waktu Log</label>
                         <div class="input-group input-group-sm">
                             <input type="text" name="daterange" class="form-control" id="filter-daterange"
-                                value="{{ request('daterange') }}" placeholder="Pilih Rentang Tanggal">
+                                value="{{ $daterangeValue }}" placeholder="Pilih Rentang Tanggal">
                             <button class="btn btn-outline-secondary" type="button"
                                 onclick="$('#filter-daterange').val('');"><i class="fa fa-times"></i></button>
                         </div>
@@ -250,7 +250,8 @@
                 opens: 'left',
                 autoUpdateInput: false,
                 locale: {
-                    format: 'DD/MM/YYYY',
+                    format: 'YYYY-MM-DD',
+                    separator: ' - ',
                     cancelLabel: 'Clear',
                     applyLabel: 'Apply',
                     daysOfWeek: ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'],
@@ -260,22 +261,14 @@
                     firstDay: 1
                 }
             }, function(start, end, label) {
-                $('#filter-daterange').val(start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY'));
+                $('#filter-daterange').val(start.format('YYYY-MM-DD') + ' - ' + end.format('YYYY-MM-DD'));
             });
 
             $('#filter-daterange').on('cancel.daterangepicker', function(ev, picker) {
                 $(this).val('');
             });
 
-            @if (request('daterange'))
-                $('#filter-daterange').val('{{ request('daterange') }}');
-            @else
-                var drp = $('#filter-daterange').data('daterangepicker');
-                if (drp) {
-                    drp.setStartDate(moment());
-                    drp.setEndDate(moment());
-                }
-            @endif
+            $('#filter-daterange').val(@json($daterangeValue));
         });
     </script>
 @endpush

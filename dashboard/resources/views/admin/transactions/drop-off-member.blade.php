@@ -207,12 +207,17 @@
             });
 
             // Set initial value for daterange input if a value exists from the request
-            var initialDateRange = "{{ request('daterange') }}";
+            var initialDateRange = @json(request('daterange'));
             if (initialDateRange) {
                 $('#filter-daterange').val(initialDateRange);
+            } else {
+                var endDate = moment().format('YYYY-MM-DD');
+                var startDate = moment().subtract(6, 'days').format('YYYY-MM-DD');
+                $('#filter-daterange').val(startDate + ' - ' + endDate);
+                var datePicker = $('#filter-daterange').data('daterangepicker');
+                datePicker.setStartDate(startDate);
+                datePicker.setEndDate(endDate);
             }
-            // HAPUS logika default pengisian tanggal 'hari ini' di sini
-            // sehingga input dibiarkan kosong jika tidak ada request('daterange')
 
             // Event listener for when the 'Apply' button is clicked in the daterangepicker
             $('#filter-daterange').on('apply.daterangepicker', function(ev, picker) {

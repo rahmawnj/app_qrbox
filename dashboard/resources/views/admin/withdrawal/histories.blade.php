@@ -9,116 +9,15 @@
 @push('styles')
 <link href="{{ asset('assets/plugins/bootstrap-daterangepicker/daterangepicker.css') }}" rel="stylesheet" />
 <style>
-/* Base Card Styles */
-.summary-card {
-background-color: #ffffff;
-border: 1px solid #e0e0e0;
-border-radius: .5rem;
-box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-padding: 1.5rem;
-display: flex;
-align-items: center;
-gap: 1rem;
-margin-bottom: 1rem;
-}
-
-    /* Large Card Specific Styles */
-    .summary-card.large-card {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        padding: 1rem;
-        background-color: #d1ecf1; /* Light blue background */
-        border-color: #bee5eb; /* Light blue border */
-        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
-        height: 100%; /* Fill column height */
-        justify-content: center; /* Vertically center content */
+    .withdrawal-summary .widget.widget-stats {
+        min-height: 132px;
+        padding: 18px 20px;
     }
 
-    .summary-card.large-card .icon-circle {
-        width: 70px;
-        height: 70px;
-        font-size: 2.5rem;
-        margin-bottom: 1rem;
+    .withdrawal-summary .stats-number {
+        font-size: 1.35rem;
     }
 
-    .summary-card.large-card .card-title {
-        font-size: 1.25rem;
-        color: #0c5460;
-    }
-
-    .summary-card.large-card .card-text.h3 {
-        font-size: 2.5rem;
-        font-weight: bold;
-        color: #0c5460;
-    }
-
-    .summary-card.large-card .card-text.small-desc {
-        font-size: 1rem;
-        color: #3a8e9e;
-    }
-
-    /* Small Card Icon Circle Colors */
-    .summary-card .icon-circle {
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-size: 1.5rem;
-        color: #ffffff;
-        flex-shrink: 0;
-    }
-
-    .icon-circle.bg-info-dark {
-        background-color: #0d6efd !important;
-    }
-
-    .icon-circle.bg-blue {
-        background-color: #007bff !important;
-    }
-
-    .icon-circle.bg-success {
-        background-color: #28a745 !important;
-    }
-
-    .icon-circle.bg-danger {
-        background-color: #dc3545 !important;
-    }
-
-    .icon-circle.bg-secondary {
-        background-color: #6c757d !important;
-    }
-
-    .icon-circle.bg-primary {
-        background-color: #007bff !important;
-    }
-
-    .icon-circle.bg-warning-dark {
-        background-color: #ffc107 !important;
-        color: #343a40 !important;
-    }
-
-    .summary-card .card-title {
-        font-size: 1rem;
-        color: #6c757d;
-        margin-bottom: 0.25rem;
-    }
-
-    .summary-card .card-text.h3 {
-        font-size: 1.75rem;
-        margin-bottom: 0.5rem;
-        color: #343a40;
-    }
-
-    .summary-card .card-text.small-desc {
-        font-size: 0.875rem;
-        color: #999;
-        margin-bottom: 0;
-    }
-
-    /* Filter & Table Specific Styles */
     .filter-group {
         display: flex;
         gap: 10px;
@@ -141,22 +40,6 @@ margin-bottom: 1rem;
         margin-bottom: 0;
     }
 
-    /* Grid for Cards */
-    .card-grid-container {
-        display: grid;
-        grid-template-columns: 1.2fr 2fr;
-        gap: 1rem;
-        margin-bottom: 1.5rem;
-        align-items: stretch;
-    }
-
-    .small-cards-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem;
-    }
-
-    /* Table row clickable style */
     .table tbody tr {
         cursor: pointer;
     }
@@ -164,7 +47,6 @@ margin-bottom: 1rem;
         background-color: #f5f5f5;
     }
 
-    /* Modal detail styles */
     .modal-body .detail-row {
         display: flex;
         justify-content: space-between;
@@ -183,20 +65,6 @@ margin-bottom: 1rem;
         text-align: right;
     }
 
-    @media (max-width: 992px) {
-        .card-grid-container {
-            grid-template-columns: 1fr;
-        }
-        .small-cards-grid {
-            grid-template-columns: 1fr 1fr;
-        }
-    }
-
-    @media (max-width: 768px) {
-        .small-cards-grid {
-            grid-template-columns: 1fr;
-        }
-    }
 </style>
 
 @endpush
@@ -204,38 +72,34 @@ margin-bottom: 1rem;
 @section('content')
 <x-breadcrumb :items="$items" :title="$title" :subtitle="$subtitle" />
 
-<div class="row mb-3">
-    {{-- Kartu Utama: Saldo Aktif Global --}}
-    <div class="col-md-6">
-        <div class="card border-0 bg-info text-white mb-3">
-            <div class="card-body">
-                <div class="mb-3 text-white-transparent-8">
-                    <b>TOTAL DANA BELUM DITARIK (GLOBAL)</b>
-                </div>
-                <h3 class="mb-10 text-white">Rp {{ number_format($totalUnwithdrawnFunds, 0, ',', '.') }}</h3>
-                <p class="mb-0 small">Total akumulasi saldo dari seluruh Owner yang tersedia di sistem.</p>
+<div class="row mb-2 withdrawal-summary">
+    <div class="col-xl-4 col-md-6">
+        <div class="widget widget-stats bg-teal mb-10px">
+            <div class="stats-icon stats-icon-lg"><i class="fa fa-wallet fa-fw"></i></div>
+            <div class="stats-content">
+                <div class="stats-title">Dana Belum Ditarik</div>
+                <div class="stats-number">Rp {{ number_format($totalUnwithdrawnFunds, 0, ',', '.') }}</div>
+                <div class="stats-desc">Saldo tersedia seluruh owner</div>
             </div>
         </div>
     </div>
-
-    {{-- Kartu Ringkasan Penarikan --}}
-    <div class="col-md-6">
-        <div class="row">
-            <div class="col-6">
-                <div class="card border-0 bg-blue text-white mb-3">
-                    <div class="card-body">
-                        <div class="text-white-transparent-8 small"><b>TOTAL TRANSAKSI</b></div>
-                        <h4 class="text-white">{{ $totalGlobalWithdrawalsCount }}</h4>
-                    </div>
-                </div>
+    <div class="col-xl-4 col-md-6">
+        <div class="widget widget-stats bg-blue mb-10px">
+            <div class="stats-icon stats-icon-lg"><i class="fa fa-receipt fa-fw"></i></div>
+            <div class="stats-content">
+                <div class="stats-title">Total Penarikan</div>
+                <div class="stats-number">{{ number_format($totalGlobalWithdrawalsCount) }}</div>
+                <div class="stats-desc">Jumlah seluruh transaksi</div>
             </div>
-            <div class="col-6">
-                <div class="card border-0 bg-success text-white mb-3">
-                    <div class="card-body">
-                        <div class="text-white-transparent-8 small"><b>TOTAL DANA DITARIK</b></div>
-                        <h4 class="text-white">Rp {{ number_format($totalGlobalWithdrawalsAmount, 0, ',', '.') }}</h4>
-                    </div>
-                </div>
+        </div>
+    </div>
+    <div class="col-xl-4 col-md-6">
+        <div class="widget widget-stats bg-purple mb-10px">
+            <div class="stats-icon stats-icon-lg"><i class="fa fa-coins fa-fw"></i></div>
+            <div class="stats-content">
+                <div class="stats-title">Total Dana Ditarik</div>
+                <div class="stats-number">Rp {{ number_format($totalGlobalWithdrawalsAmount, 0, ',', '.') }}</div>
+                <div class="stats-desc">Akumulasi penarikan seluruh owner</div>
             </div>
         </div>
     </div>
@@ -247,7 +111,7 @@ margin-bottom: 1rem;
                     <i class="fa fa-filter me-2"></i>Filter Data
                 </h4>
             </div>
-            <div class="panel-body bg-light">
+            <div class="panel-body bg-white">
                 <form action="{{ url()->current() }}" method="GET" id="filterForm">
                     <div class="d-flex flex-wrap gap-4">
                         <div class="flex-fill" style="min-width:260px;">
@@ -403,7 +267,7 @@ ranges: {
 }
 });
 
-        var initialDateRange = "{{ request('daterange') }}";
+        var initialDateRange = @json($daterange);
         if (initialDateRange) {
             $('#filter-daterange').val(initialDateRange);
         }

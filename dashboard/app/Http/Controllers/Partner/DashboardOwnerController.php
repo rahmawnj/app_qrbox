@@ -66,8 +66,8 @@ class DashboardOwnerController extends Controller
 
             if (count($dateRange) === 2 && !empty($dateRange[0]) && !empty($dateRange[1])) {
                 try {
-                    $startDate = Carbon::createFromFormat('Y/m/d', $dateRange[0])->startOfDay();
-                    $endDate = Carbon::createFromFormat('Y/m/d', $dateRange[1])->endOfDay();
+                    $startDate = Carbon::createFromFormat('Y-m-d', $dateRange[0])->startOfDay();
+                    $endDate = Carbon::createFromFormat('Y-m-d', $dateRange[1])->endOfDay();
                     $daterangeFilter = $request->input('daterange');
                 } catch (\Exception $e) {
                     Log::error('Dashboard Date Range Filter Error: Failed to parse date string.', [
@@ -75,23 +75,23 @@ class DashboardOwnerController extends Controller
                         'exception_message' => $e->getMessage(),
                     ]);
                     // Fallback to default range if parsing fails
-                    $startDate = Carbon::now()->subDays(30)->startOfDay();
-                    $endDate = Carbon::now()->endOfDay();
-                    $daterangeFilter = $startDate->format('Y/m/d') . ' - ' . $endDate->format('Y/m/d');
+                    $startDate = Carbon::today()->subDays(6)->startOfDay();
+                    $endDate = Carbon::today()->endOfDay();
+                    $daterangeFilter = $startDate->format('Y-m-d') . ' - ' . $endDate->format('Y-m-d');
                 }
             } else {
                 Log::warning('Dashboard Date Range Filter Warning: Daterange input malformed.', [
                     'input_daterange' => $request->input('daterange'),
                 ]);
                 // Fallback to default range if malformed
-                $startDate = Carbon::now()->subDays(30)->startOfDay();
-                $endDate = Carbon::now()->endOfDay();
-                $daterangeFilter = $startDate->format('Y/m/d') . ' - ' . $endDate->format('Y/m/d');
+                $startDate = Carbon::today()->subDays(6)->startOfDay();
+                $endDate = Carbon::today()->endOfDay();
+                $daterangeFilter = $startDate->format('Y-m-d') . ' - ' . $endDate->format('Y-m-d');
             }
         } else {
-            $startDate = Carbon::now()->subDays(30)->startOfDay();
-            $endDate = Carbon::now()->endOfDay();
-            $daterangeFilter = $startDate->format('Y/m/d') . ' - ' . $endDate->format('Y/m/d');
+            $startDate = Carbon::today()->subDays(6)->startOfDay();
+            $endDate = Carbon::today()->endOfDay();
+            $daterangeFilter = $startDate->format('Y-m-d') . ' - ' . $endDate->format('Y-m-d');
         }
 
         $transactionsForChartsQuery = Transaction::select(

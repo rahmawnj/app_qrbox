@@ -73,16 +73,16 @@ public function index(Request $request)
             $startDate = \Carbon\Carbon::parse(trim($dateRange[0]))->startOfDay();
             $endDate = \Carbon\Carbon::parse(trim($dateRange[1]))->endOfDay();
         } else {
-            $startDate = \Carbon\Carbon::now()->subDays(30)->startOfDay();
-            $endDate = \Carbon\Carbon::now()->endOfDay();
+            $startDate = \Carbon\Carbon::today()->subDays(6)->startOfDay();
+            $endDate = \Carbon\Carbon::today()->endOfDay();
         }
     } catch (\Exception $e) {
-        $startDate = \Carbon\Carbon::now()->subDays(30)->startOfDay();
-        $endDate = \Carbon\Carbon::now()->endOfDay();
+        $startDate = \Carbon\Carbon::today()->subDays(6)->startOfDay();
+        $endDate = \Carbon\Carbon::today()->endOfDay();
     }
 
     $baseQuery->whereBetween('created_at', [$startDate, $endDate]);
-    $daterangeValue = $startDate->format('Y/m/d') . ' - ' . $endDate->format('Y/m/d');
+    $daterangeValue = $startDate->format('Y-m-d') . ' - ' . $endDate->format('Y-m-d');
 
     // --- HITUNG STATISTIK (Global Berdasarkan Filter) ---
     // Statistik biasanya selalu menghitung yang success saja
@@ -362,7 +362,7 @@ public function index(Request $request)
             $startDate = Carbon::parse($startDate)->startOfDay();
             $endDate = Carbon::parse($endDate)->endOfDay();
         } else {
-            $startDate = now()->startOfDay();
+            $startDate = now()->subDays(6)->startOfDay();
             $endDate = now()->endOfDay();
         }
         $query->whereBetween($dateColumn, [$startDate, $endDate]);

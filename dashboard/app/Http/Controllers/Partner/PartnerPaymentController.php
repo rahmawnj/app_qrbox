@@ -30,21 +30,31 @@ class PartnerPaymentController extends Controller
         // Clone query untuk perhitungan ringkasan setelah filter (filtered)
         $filteredQuery = clone $baseQuery;
 
+        $daterange = $request->input('daterange');
+        if (!$daterange) {
+            $daterange = Carbon::today()->subDays(6)->format('Y-m-d')
+                . ' - ' . Carbon::today()->format('Y-m-d');
+        }
+
         // Terapkan semua filter ke filteredQuery
         if ($request->has('status') && $request->status != '') {
             $filteredQuery->where('status', $request->status);
         }
 
-        if ($request->has('daterange') && $request->daterange != '') {
-            list($startDate, $endDate) = explode(' - ', $request->daterange);
-            try {
-                $startDate = Carbon::createFromFormat('Y-m-d', trim($startDate))->startOfDay();
-                $endDate = Carbon::createFromFormat('Y-m-d', trim($endDate))->endOfDay();
-                $filteredQuery->whereBetween('created_at', [$startDate, $endDate]);
-            } catch (\Exception $e) {
-                Log::error('Invalid date format in daterange filter', ['exception' => $e]);
+        try {
+            $dates = explode(' - ', $daterange);
+            if (count($dates) !== 2) {
+                throw new \InvalidArgumentException('Expected a start and end date.');
             }
+            $startDate = Carbon::createFromFormat('Y-m-d', trim($dates[0]))->startOfDay();
+            $endDate = Carbon::createFromFormat('Y-m-d', trim($dates[1]))->endOfDay();
+        } catch (\Exception $e) {
+            Log::error('Invalid date format in daterange filter', ['exception' => $e]);
+            $startDate = Carbon::today()->subDays(6)->startOfDay();
+            $endDate = Carbon::today()->endOfDay();
         }
+        $daterangeValue = $startDate->format('Y-m-d') . ' - ' . $endDate->format('Y-m-d');
+        $filteredQuery->whereBetween('created_at', [$startDate, $endDate]);
 
         if ($request->has('search') && $request->search != '') {
             $searchTerm = $request->search;
@@ -94,7 +104,7 @@ class PartnerPaymentController extends Controller
             'totalPaymentsAmountOverall',
             'totalFilteredPaymentsCount',
             'totalFilteredPaymentsAmount',
-
+            'daterangeValue'
         ));
     }
 
@@ -142,18 +152,27 @@ class PartnerPaymentController extends Controller
         $filteredQrisTransactionsQuery = clone $qrisTransactionsBaseQuery;
         $filteredTopupQrisQuery = clone $topupQrisBaseQuery;
 
-        if ($request->has('daterange') && $request->daterange != '') {
-            try {
-                [$startDate, $endDate] = explode(' - ', $request->daterange);
-                $startDate = Carbon::createFromFormat('Y-m-d', trim($startDate))->startOfDay();
-                $endDate = Carbon::createFromFormat('Y-m-d', trim($endDate))->endOfDay();
-
-                $filteredQrisTransactionsQuery->whereBetween('created_at', [$startDate, $endDate]);
-                $filteredTopupQrisQuery->whereBetween('created_at', [$startDate, $endDate]);
-            } catch (\Exception $e) {
-                Log::error('Invalid date format in daterange filter for QRIS history', ['exception' => $e]);
-            }
+        $daterange = $request->input('daterange');
+        if (!$daterange) {
+            $daterange = Carbon::today()->subDays(6)->format('Y-m-d')
+                . ' - ' . Carbon::today()->format('Y-m-d');
         }
+
+        try {
+            $dates = explode(' - ', $daterange);
+            if (count($dates) !== 2) {
+                throw new \InvalidArgumentException('Expected a start and end date.');
+            }
+            $startDate = Carbon::createFromFormat('Y-m-d', trim($dates[0]))->startOfDay();
+            $endDate = Carbon::createFromFormat('Y-m-d', trim($dates[1]))->endOfDay();
+        } catch (\Exception $e) {
+            Log::error('Invalid date format in daterange filter for QRIS history', ['exception' => $e]);
+            $startDate = Carbon::today()->subDays(6)->startOfDay();
+            $endDate = Carbon::today()->endOfDay();
+        }
+        $daterange = $startDate->format('Y-m-d') . ' - ' . $endDate->format('Y-m-d');
+        $filteredQrisTransactionsQuery->whereBetween('created_at', [$startDate, $endDate]);
+        $filteredTopupQrisQuery->whereBetween('created_at', [$startDate, $endDate]);
 
         if ($request->has('status') && $request->status != '') {
             $filteredQrisTransactionsQuery->whereHas('transactionable', function ($q) use ($request) {
@@ -216,7 +235,8 @@ class PartnerPaymentController extends Controller
             'totalCombinedCountOverall',
             'totalCombinedAmountOverall',
             'totalFilteredCount',
-            'totalFilteredAmount'
+            'totalFilteredAmount',
+            'daterange'
         ));
     }
 

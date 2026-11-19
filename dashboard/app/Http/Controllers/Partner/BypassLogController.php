@@ -16,6 +16,11 @@ class BypassLogController extends Controller
         // Assume getData() is available globally or injected
         $devices = getData()->devices;
         $id_devices = $devices->pluck('id')->toArray();
+        $daterangeValue = $request->input('daterange');
+        if (!$daterangeValue) {
+            $daterangeValue = Carbon::today()->subDays(6)->format('Y-m-d')
+                . ' - ' . Carbon::today()->format('Y-m-d');
+        }
 
         $query = DB::table('bypass_records')
             ->join('devices', 'bypass_records.device_id', '=', 'devices.id')
@@ -52,20 +57,17 @@ class BypassLogController extends Controller
         }
 
         // Filter based on date range (daterange)
-        if ($request->filled('daterange')) {
-            $dateRange = explode(' - ', $request->input('daterange'));
-            if (count($dateRange) === 2 && !empty($dateRange[0]) && !empty($dateRange[1])) {
-                try {
-                    $startDate = Carbon::createFromFormat('d/m/Y', $dateRange[0])->startOfDay();
-                    $endDate = Carbon::createFromFormat('d/m/Y', $dateRange[1])->endOfDay();
-                    $query->whereBetween('bypass_records.created_at', [$startDate, $endDate]);
-                } catch (\Exception $e) {
-                    Log::error('Date Range Filter Error (Partner Bypass Logs): ' . $e->getMessage(), [
-                        'daterange_input' => $request->input('daterange'),
-                        'exception' => $e
-                    ]);
-                    // Optionally, you might want to redirect back with an error or ignore the filter
-                }
+        $dateRange = explode(' - ', $daterangeValue);
+        if (count($dateRange) === 2 && !empty($dateRange[0]) && !empty($dateRange[1])) {
+            try {
+                $startDate = Carbon::createFromFormat('Y-m-d', trim($dateRange[0]))->startOfDay();
+                $endDate = Carbon::createFromFormat('Y-m-d', trim($dateRange[1]))->endOfDay();
+                $query->whereBetween('bypass_records.created_at', [$startDate, $endDate]);
+            } catch (\Exception $e) {
+                Log::error('Date Range Filter Error (Partner Bypass Logs): ' . $e->getMessage(), [
+                    'daterange_input' => $daterangeValue,
+                    'exception' => $e
+                ]);
             }
         }
 
@@ -73,7 +75,7 @@ class BypassLogController extends Controller
 
         $logs = $query->orderBy('bypass_records.created_at', 'desc')->paginate(15); // Adjust pagination as needed
 
-        return view('partner.bypass_log', compact('logs'));
+        return view('partner.bypass_log', compact('logs', 'daterangeValue'));
     }
 
 }

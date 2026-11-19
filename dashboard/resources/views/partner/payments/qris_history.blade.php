@@ -206,13 +206,7 @@
             });
 
             // Set nilai input saat tanggal dipilih
-            var initialDateRange = "{{ request('daterange') }}";
-            if (initialDateRange) {
-                $('#filter-daterange').val(initialDateRange);
-            } else {
-                var today = moment().format('YYYY-MM-DD');
-                $('#filter-daterange').val(today + ' - ' + today);
-            }
+            $('#filter-daterange').val(@json($daterange));
 
             // Event listener for when the 'Apply' button is clicked in the daterangepicker
             $('#filter-daterange').on('apply.daterangepicker', function(ev, picker) {
@@ -290,7 +284,7 @@
                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <div class="input-group input-group-sm" style="max-width: 280px;">
                         <input type="text" name="daterange" id="filter-daterange" class="form-control daterange-picker"
-                            value="{{ request('daterange') }}" placeholder="Pilih Rentang Tanggal">
+                            value="{{ $daterange }}" placeholder="Pilih Rentang Tanggal">
                         <span class="input-group-append">
                             <span class="input-group-text"><i class="fa fa-calendar"></i></span>
                         </span>

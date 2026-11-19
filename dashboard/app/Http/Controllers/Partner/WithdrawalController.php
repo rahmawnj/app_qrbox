@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Partner;
 
+use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Withdrawal;
 use App\Models\Transaction;
@@ -161,15 +162,17 @@ public function histories(Request $request)
     // 2. Query Riwayat Penarikan (Hanya milik owner ini)
     $query = Withdrawal::where('owner_id', $owner->id);
 
-    // Filter berdasarkan rentang waktu
-    if ($request->filled('daterange')) {
-        $dates = explode(' - ', $request->daterange);
-        if (count($dates) === 2) {
-            $query->whereBetween('created_at', [
-                trim($dates[0]) . ' 00:00:00',
-                trim($dates[1]) . ' 23:59:59'
-            ]);
-        }
+    $daterange = $request->query('daterange');
+    if (!$daterange) {
+        $daterange = Carbon::today()->subDays(6)->format('Y-m-d') . ' - ' . Carbon::today()->format('Y-m-d');
+    }
+
+    $dates = explode(' - ', $daterange);
+    if (count($dates) === 2) {
+        $query->whereBetween('created_at', [
+            trim($dates[0]) . ' 00:00:00',
+            trim($dates[1]) . ' 23:59:59'
+        ]);
     }
 
     // Hitung total ringkasan untuk Owner ini
@@ -185,7 +188,8 @@ public function histories(Request $request)
         'availableBalance',
         'totalWithdrawalsCount',
         'totalWithdrawalsAmount',
-        'totalNetTransferred'
+        'totalNetTransferred',
+        'daterange'
     ));
 }
 }

@@ -204,8 +204,7 @@ public function toggleStatus(Request $request, Device $device)
     public function getDeviceMenu($device_code)
     {
         try {
-            // Cari device berdasarkan device_code
-            $device = Device::where('code', $device_code)->first();
+            $device = Device::with('serviceType')->where('code', $device_code)->first();
 
             if (!$device) {
                 return response()->json([
@@ -214,22 +213,48 @@ public function toggleStatus(Request $request, Device $device)
                 ], 404);
             }
 
-            $menus = [
-                $device->option_1 ?? new \stdClass(),
-                $device->option_2 ?? new \stdClass(),
-                $device->option_3 ?? new \stdClass(),
-                $device->option_4 ?? new \stdClass(),
-            ];
+            // Gunakan daftar item Service Type yang sama dengan konfigurasi Dashboard.
+            $serviceItems = collect($device->serviceType?->items ?? []);
+            $allowedKeys = $serviceItems
+                ->pluck('key')
+                ->filter(fn ($key) => filled($key))
+                ->values();
+
+            // API hanya mengirim menu aktif; slot kosong/disabled tidak ikut dikirim.
+            $menus = collect([
+                $device->option_1,
+                $device->option_2,
+                $device->option_3,
+                $device->option_4,
+            ])->filter(function ($menu) use ($allowedKeys) {
+                if (is_string($menu)) {
+                    $menu = json_decode($menu, true);
+                }
+
+                if (!is_array($menu) || empty($menu['type'])) {
+                    return false;
+                }
+
+                if (!filter_var($menu['active'] ?? false, FILTER_VALIDATE_BOOLEAN) || $menu['type'] === 'disabled') {
+                    return false;
+                }
+
+                return $allowedKeys->contains($menu['type']);
+            })->values()->all();
 
             return response()->json([
                 'status' => 'success',
                 'service_type' => $device->serviceType?->name,
                 'device_name' => $device->name,
                 'device_code' => $device->code,
-                'menus' => $menus
+                'menus' => $menus,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to load device menu', [
+                'device_code' => $device_code,
+                'error' => $e->getMessage(),
             ]);
 
-        } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Internal Server Error: ' . $e->getMessage()

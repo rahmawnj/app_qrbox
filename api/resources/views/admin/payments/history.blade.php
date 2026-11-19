@@ -50,7 +50,7 @@
     <div class="panel-heading">
         <h4 class="panel-title"><i class="fa fa-filter me-2"></i>Filter Riwayat</h4>
     </div>
-    <div class="panel-body bg-light">
+    <div class="panel-body bg-white">
         <form action="{{ url()->current() }}" method="GET">
             <div class="d-flex flex-wrap gap-4">
                 <div class="flex-fill" style="min-width:260px;">

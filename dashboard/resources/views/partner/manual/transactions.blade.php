@@ -386,10 +386,15 @@
             });
 
             // Set nilai awal datepicker jika ada di URL
-            var daterange = "{{ request('daterange') }}";
-            if (daterange) {
-                $('.daterange-picker').val(daterange);
+            var daterange = @json(request('daterange'));
+            if (!daterange) {
+                var startDate = moment().subtract(6, 'days');
+                var endDate = moment();
+                daterange = startDate.format('YYYY-MM-DD') + ' - ' + endDate.format('YYYY-MM-DD');
+                $('.daterange-picker').data('daterangepicker').setStartDate(startDate);
+                $('.daterange-picker').data('daterangepicker').setEndDate(endDate);
             }
+            $('.daterange-picker').val(daterange);
         });
     </script>
 @endpush
